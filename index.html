@@ -8,6 +8,11 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- vConsole for mobile debugging -->
+  <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+  <script>
+    var vConsole = new window.VConsole();
+  </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -672,9 +677,10 @@
     // ============ INIT ============
     async function init() {
       const startTime = performance.now();
+      const DEBUG = true; // เปิด debug mode
       
       try {
-        console.log('🚀 1. Starting init...');
+        if (DEBUG) console.log('Step 1: Config check');
         
         // Check config
         if (CONFIG.LIFF_ID === 'YOUR_LIFF_ID_HERE') {
@@ -686,28 +692,27 @@
           return;
         }
         
-        console.log('🔗 2. Init Supabase...');
+        if (DEBUG) console.log('Step 2: Init Supabase');
         // Init Supabase
         supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         
-        console.log('📱 3. Init LIFF...');
+        if (DEBUG) console.log('Step 3: Init LIFF');
         setLoading('กำลังเชื่อมต่อ LINE...');
         await liff.init({ liffId: CONFIG.LIFF_ID });
         
         if (!liff.isLoggedIn()) {
-          console.log('🔐 Not logged in, redirecting...');
+          if (DEBUG) console.log('Not logged in, redirecting...');
           liff.login();
           return;
         }
         
-        console.log('👤 4. Get LINE profile...');
+        if (DEBUG) console.log('Step 4: Get LINE Profile');
         // Get LINE profile
         lineProfile = await liff.getProfile();
-        console.log('LINE User ID:', lineProfile.userId);
-        console.log('LINE Display Name:', lineProfile.displayName);
+        if (DEBUG) console.log('LINE User ID:', lineProfile.userId);
         
         // ⚡ Query จาก Supabase (เร็วมาก!)
-        console.log('🔍 5. Query Supabase users...');
+        if (DEBUG) console.log('Step 5: Query Supabase users');
         setLoading('กำลังดึงข้อมูล...');
         
         // Query user
@@ -717,40 +722,39 @@
           .eq('line_user_id', lineProfile.userId)
           .single();
         
-        console.log('📊 6. Query result:', { userData, userError });
+        if (DEBUG) console.log('Step 6: User result', { userData, userError });
         
         if (userError) {
-          console.error('❌ User query error:', userError);
-          showError('ไม่พบข้อมูลลูกค้า กรุณาติดต่อ Admin\n\nLINE ID: ' + lineProfile.userId);
+          console.error('User Error:', userError);
+          showError('ไม่พบข้อมูลลูกค้า\n\nLINE ID: ' + lineProfile.userId + '\n\nError: ' + (userError.message || JSON.stringify(userError)));
           return;
         }
         
         if (!userData) {
-          console.error('❌ No user data found');
-          showError('ไม่พบข้อมูลลูกค้า กรุณาติดต่อ Admin\n\nLINE ID: ' + lineProfile.userId);
+          showError('ไม่พบข้อมูลลูกค้า\n\nLINE ID: ' + lineProfile.userId);
           return;
         }
         
         customerInfo = userData;
-        console.log('✅ 7. User found:', customerInfo);
+        if (DEBUG) console.log('Step 7: Customer found', customerInfo.cust_id);
         
+        if (DEBUG) console.log('Step 8: Query cards for', customerInfo.cust_id);
         // Query cards
-        console.log('🃏 8. Query Supabase cards...');
         const { data: cardsData, error: cardsError } = await supabase
           .from('cards')
           .select('*')
           .eq('cust_id', customerInfo.cust_id)
           .eq('available', true);
         
-        console.log('📊 9. Cards result:', { count: cardsData?.length, cardsError });
+        if (DEBUG) console.log('Step 9: Cards result', { count: cardsData?.length, cardsError });
         
         if (cardsError) {
           console.error('Cards error:', cardsError);
         }
         
         allCards = cardsData || [];
-        console.log('🃏 10. Total available cards:', allCards.length);
         
+        if (DEBUG) console.log('Step 10: Rendering UI, cards:', allCards.length);
         // Render UI
         renderProfile();
         setDefaultDate();
@@ -770,7 +774,7 @@
         
       } catch (error) {
         console.error('Init error:', error);
-        showError('เกิดข้อผิดพลาด: ' + error.message);
+        showError('เกิดข้อผิดพลาด: ' + error.message + '\n\nStack: ' + error.stack);
       }
     }
     
