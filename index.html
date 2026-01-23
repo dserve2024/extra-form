@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>D-SERVE แจ้งยอดรูดนอกรอบ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      min-height: 100vh;
+      padding: 16px;
+      padding-bottom: 100px;
+    }
+    
+    .container { max-width: 480px; margin: 0 auto; }
+    
+    .header { text-align: center; padding: 20px 0; color: #fff; }
+    .header h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; }
+    .header p { font-size: 0.85rem; opacity: 0.9; }
+    
+    .card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .form-group { margin-bottom: 16px; }
+    
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: 'Prompt', sans-serif;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      transition: all 0.3s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #fff;
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .form-input::placeholder { color: rgba(255,255,255,0.5); }
+    
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: 'Prompt', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #00d084, #00b894);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0,208,132,0.4);
+    }
+    
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .bank-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    
+    .bank-btn {
+      padding: 12px 8px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    
+    .bank-btn:hover { background: rgba(255,255,255,0.2); }
+    
+    .bank-btn.selected {
+      background: linear-gradient(135deg, rgba(0,208,132,0.3), rgba(0,184,148,0.3));
+      border-color: #00d084;
+      box-shadow: 0 0 15px rgba(0,208,132,0.3);
+    }
+    
+    .card-list-single { display: flex; flex-direction: column; gap: 10px; }
+    
+    .card-checkbox {
+      display: flex;
+      align-items: flex-start;
+      padding: 14px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .card-checkbox:hover { background: rgba(255,255,255,0.2); }
+    
+    .card-checkbox.checked {
+      background: linear-gradient(135deg, rgba(0,208,132,0.3), rgba(0,184,148,0.3));
+      border-color: #00d084;
+    }
+    
+    .card-checkbox input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      margin-right: 12px;
+      accent-color: #00d084;
+      flex-shrink: 0;
+    }
+    
+    .card-checkbox .card-info { flex: 1; }
+    .card-checkbox .card-name { font-weight: 600; color: #fff; font-size: 0.95rem; }
+    .card-checkbox .card-detail { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-top: 3px; }
+    
+    .card-list-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    
+    .card-checkbox-compact {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .card-checkbox-compact:hover { background: rgba(255,255,255,0.2); }
+    
+    .card-checkbox-compact.checked {
+      background: linear-gradient(135deg, rgba(0,208,132,0.3), rgba(0,184,148,0.3));
+      border-color: #00d084;
+    }
+    
+    .card-checkbox-compact input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+      accent-color: #00d084;
+      flex-shrink: 0;
+    }
+    
+    .card-checkbox-compact .card-info { flex: 1; min-width: 0; }
+    .card-checkbox-compact .card-name {
+      font-weight: 600;
+      color: #fff;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-checkbox-compact .card-detail { font-size: 0.7rem; color: rgba(255,255,255,0.7); }
+    
+    .bank-section { margin-bottom: 16px; }
+    
+    .bank-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    
+    .bank-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    .bank-icon.kbank { background: linear-gradient(135deg, #00d084, #00b894); }
+    .bank-icon.kfv { background: linear-gradient(135deg, #00d084, #00b894); }
+    .bank-icon.lotus { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .bank-icon.kcc { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); }
+    .bank-icon.scb { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+    .bank-icon.the1 { background: linear-gradient(135deg, #fd79a8, #e84393); }
+    .bank-icon.ttb { background: linear-gradient(135deg, #74b9ff, #0984e3); }
+    .bank-icon.uob { background: linear-gradient(135deg, #fdcb6e, #f39c12); }
+    
+    .bank-name { font-weight: 600; color: #fff; font-size: 0.9rem; }
+    .bank-count { background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; color: #fff; }
+    
+    .add-card-btn {
+      width: 100%;
+      padding: 14px;
+      border: 2px dashed rgba(255,255,255,0.3);
+      border-radius: 12px;
+      background: transparent;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .add-card-btn:hover { border-color: #00d084; color: #00d084; background: rgba(0,208,132,0.1); }
+    
+    .manual-card-form {
+      background: rgba(0,0,0,0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+      display: none;
+    }
+    
+    .manual-card-form.show { display: block; }
+    
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    
+    .form-select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-family: 'Prompt', sans-serif;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      cursor: pointer;
+    }
+    
+    .form-select option { background: #333; color: #fff; }
+    
+    .selected-cards-section { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 16px; }
+    
+    .selected-card-item {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    
+    .selected-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    
+    .selected-card-info h4 { font-size: 0.9rem; color: #fff; font-weight: 600; }
+    .selected-card-info p { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+    
+    .remove-card-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255,107,107,0.3);
+      color: #ff6b6b;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .remove-card-btn:hover { background: rgba(255,107,107,0.5); }
+    
+    .amount-input-group { display: flex; gap: 8px; align-items: center; }
+    
+    .amount-input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: 'Prompt', sans-serif;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      text-align: right;
+    }
+    
+    .amount-input:focus { outline: none; border-color: #00d084; }
+    
+    .currency-label { color: rgba(255,255,255,0.7); font-size: 0.9rem; font-weight: 500; }
+    
+    .quick-amount-section { margin-bottom: 12px; }
+    .quick-amount-label { font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-bottom: 8px; }
+    .quick-amount-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    
+    .quick-amount-btn {
+      padding: 8px 14px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    
+    .quick-amount-btn:hover { background: rgba(0,208,132,0.3); border-color: #00d084; }
+    
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .toggle-label { font-size: 0.85rem; color: #fff; }
+    
+    .toggle-switch { position: relative; width: 50px; height: 26px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.3);
+      border-radius: 26px;
+      transition: 0.3s;
+    }
+    
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider { background: #00d084; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+    
+    .total-summary {
+      background: linear-gradient(135deg, rgba(0,208,132,0.3), rgba(0,184,148,0.3));
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-top: 12px;
+    }
+    
+    .total-label { font-size: 0.85rem; color: rgba(255,255,255,0.8); }
+    .total-amount { font-size: 1.8rem; font-weight: 700; color: #fff; }
+    
+    .quick-date-btns { display: flex; gap: 8px; margin-bottom: 12px; }
+    
+    .quick-date-btn {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    
+    .quick-date-btn:hover { background: rgba(255,255,255,0.2); }
+    
+    .quick-date-btn.selected {
+      background: linear-gradient(135deg, rgba(0,208,132,0.3), rgba(0,184,148,0.3));
+      border-color: #00d084;
+    }
+    
+    .recent-shops { display: flex; gap: 8px; margin-bottom: 12px; }
+    
+    .recent-shop-btn {
+      padding: 8px 14px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    
+    .recent-shop-btn:hover { background: rgba(0,208,132,0.3); border-color: #00d084; }
+    
+    .customer-info {
+      background: linear-gradient(135deg, rgba(0,208,132,0.2), rgba(0,184,148,0.2));
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .customer-info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9rem; }
+    .customer-info-row .label { color: rgba(255,255,255,0.7); }
+    .customer-info-row .value { color: #fff; font-weight: 500; }
+    
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .loading-overlay.hide { display: none; }
+    
+    .loading-content { text-align: center; color: #fff; }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: #00d084;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    
+    .modal.show { display: flex; }
+    
+    .modal-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .modal-title { font-size: 1.2rem; font-weight: 600; color: #fff; text-align: center; margin-bottom: 20px; }
+    .modal-body { color: #fff; }
+    .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+    .modal-buttons .btn { flex: 1; }
+    
+    .success-screen { text-align: center; padding: 40px 20px; }
+    
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #00d084, #00b894);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      animation: scaleIn 0.5s ease;
+    }
+    
+    @keyframes scaleIn {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    
+    .success-icon svg { width: 40px; height: 40px; stroke: #fff; }
+    .success-title { font-size: 1.4rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .success-subtitle { font-size: 0.9rem; color: rgba(255,255,255,0.8); }
+    
+    .summary-list { text-align: left; margin-top: 20px; }
+    
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.9rem;
+    }
+    
+    .summary-item:last-child { border-bottom: none; }
+    .summary-item .label { color: rgba(255,255,255,0.7); }
+    .summary-item .value { color: #fff; font-weight: 500; }
+    
+    .hidden { display: none !important; }
+    
+    .error-screen { text-align: center; padding: 40px 20px; }
+    
+    .error-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 40px;
+    }
+    
+    .error-title { font-size: 1.2rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .error-subtitle { font-size: 0.9rem; color: rgba(255,255,255,0.8); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💳 D-SERVE</h1>
+      <p>แจ้งยอดรูดนอกรอบ</p>
+    </div>
+    
+    <!-- Error Screen -->
+    <div id="errorScreen" class="card hidden">
+      <div class="error-screen">
+        <div class="error-icon">❌</div>
+        <div class="error-title">เกิดข้อผิดพลาด</div>
+        <div class="error-subtitle" id="errorMessage">กรุณาติดต่อ Admin</div>
+      </div>
+    </div>
+    
+    <!-- Step 1: Bank Selection -->
+    <div id="step1" class="card hidden">
+      <div class="customer-info" id="customerInfoDisplay"></div>
+      <div class="card-title">🏦 เลือกธนาคาร</div>
+      <div class="bank-grid" id="bankGrid"></div>
+      <button id="loadCardsBtn" class="btn btn-primary hidden" style="margin-top:16px;" onclick="loadCards()">ดึงข้อมูลบัตร</button>
+    </div>
+    
+    <!-- Step 2: Card Selection -->
+    <div id="step2" class="card hidden">
+      <div class="card-title">💳 เลือกบัตร</div>
+      <div id="cardListContainer"></div>
+      <button class="add-card-btn" onclick="toggleManualCardForm()">➕ เพิ่มบัตรที่ไม่มีในระบบ</button>
+      <div id="manualCardForm" class="manual-card-form">
+        <div class="form-group">
+          <label class="form-label">ประเภทบัตร</label>
+          <select id="manualCardType" class="form-select"><option value="">-- เลือกประเภทบัตร --</option></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">4 ตัวท้าย</label>
+            <input type="tel" id="manualLast4" class="form-input" placeholder="1234" maxlength="4" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ชื่อบนบัตร</label>
+            <input type="text" id="manualFullName" class="form-input" placeholder="NAME">
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="addManualCard()">เพิ่มบัตร</button>
+      </div>
+    </div>
+    
+    <!-- Step 3: Amount Entry -->
+    <div id="step3" class="card hidden">
+      <div class="card-title">💰 กรอกยอดเงิน</div>
+      <div id="quickAmountSection" class="quick-amount-section hidden">
+        <div class="quick-amount-label">⚡ ยอดล่าสุด</div>
+        <div class="quick-amount-btns" id="quickAmountBtns"></div>
+      </div>
+      <div class="toggle-group">
+        <span class="toggle-label">💡 ยอดเดียวกันทุกใบ</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="sameAmountToggle" onchange="toggleSameAmount()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div id="sameAmountInput" class="form-group hidden">
+        <div class="amount-input-group">
+          <input type="tel" id="globalAmount" class="amount-input" placeholder="0" inputmode="decimal" onkeyup="applyGlobalAmount()">
+          <span class="currency-label">บาท</span>
+        </div>
+      </div>
+      <div class="selected-cards-section" id="selectedCardsSection"></div>
+      <div class="total-summary">
+        <div class="total-label">ยอดรวมทั้งหมด</div>
+        <div class="total-amount" id="totalAmount">฿0</div>
+      </div>
+    </div>
+    
+    <!-- Step 4: Shop & Date -->
+    <div id="step4" class="card hidden">
+      <div class="card-title">🏪 ข้อมูลเพิ่มเติม</div>
+      <div class="form-group">
+        <label class="form-label">📅 วันที่รูด</label>
+        <div class="quick-date-btns">
+          <button class="quick-date-btn selected" data-date="today" onclick="selectQuickDate('today')">วันนี้</button>
+          <button class="quick-date-btn" data-date="yesterday" onclick="selectQuickDate('yesterday')">เมื่อวาน</button>
+          <button class="quick-date-btn" data-date="custom" onclick="selectQuickDate('custom')">เลือกเอง</button>
+        </div>
+        <input type="date" id="dateInput" class="form-input hidden">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🏪 ร้านค้าที่รูด (ไม่บังคับ)</label>
+        <div id="recentShopsContainer" class="recent-shops hidden"></div>
+        <input type="text" id="shopInput" class="form-input" placeholder="ชื่อร้านค้า">
+      </div>
+    </div>
+    
+    <!-- Submit Button -->
+    <div id="submitSection" class="hidden">
+      <button id="submitBtn" class="btn btn-primary" onclick="showConfirmModal()">✅ ยืนยันส่งข้อมูล</button>
+    </div>
+    
+    <!-- Success Screen -->
+    <div id="successScreen" class="card hidden">
+      <div class="success-screen">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <div class="success-title">บันทึกสำเร็จ!</div>
+        <div class="success-subtitle">ข้อมูลถูกบันทึกเรียบร้อยแล้ว</div>
+        <div class="summary-list" id="successSummary"></div>
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="resetForm()">🔄 เพิ่มรายการใหม่</button>
+        <button class="btn btn-secondary" style="margin-top:12px;" onclick="closeLiff()">ปิดหน้านี้</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">📋 ยืนยันข้อมูล</div>
+      <div class="modal-body" id="confirmModalBody"></div>
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeConfirmModal()">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="submitForm()">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div id="loadingText">กำลังโหลด...</div>
+    </div>
+  </div>
+  
+  <script>
+    // ═══════════════════════════════════════════════════════════════
+    // ⚠️ CONFIG - แก้ไขตรงนี้!
+    // ═══════════════════════════════════════════════════════════════
+    const CONFIG = {
+      // ใส่ LIFF ID ที่ได้จาก LINE Developers Console
+      LIFF_ID: 'YOUR_LIFF_ID_HERE',
+      
+      // ใส่ URL ของ Google Apps Script ที่ deploy แล้ว
+      // เช่น: https://script.google.com/macros/s/AKfycbw.../exec
+      API_URL: 'YOUR_APPS_SCRIPT_URL_HERE'
+    };
+    // ═══════════════════════════════════════════════════════════════
+    
+    // Static Data (จะโหลดจาก API)
+    let BANKS = [];
+    let CARD_TYPES = {};
+    
+    // State
+    let customerInfo = null;
+    let selectedBanks = [];
+    let customerCards = {};
+    let selectedCards = [];
+    let recentData = { amounts: [], shops: [] };
+    let lineProfile = null;
+    
+    // ============ API HELPER ============
+    async function callAPI(action, params = {}) {
+      const url = new URL(CONFIG.API_URL);
+      url.searchParams.set('action', action);
+      
+      for (const [key, value] of Object.entries(params)) {
+        if (typeof value === 'object') {
+          url.searchParams.set(key, JSON.stringify(value));
+        } else {
+          url.searchParams.set(key, value);
+        }
+      }
+      
+      const response = await fetch(url.toString());
+      return response.json();
+    }
+    
+    async function postAPI(action, data) {
+      const response = await fetch(CONFIG.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action, ...data })
+      });
+      return response.json();
+    }
+    
+    // ============ LIFF INIT ============
+    async function initLiff() {
+      try {
+        // ตรวจสอบ Config
+        if (CONFIG.LIFF_ID === 'YOUR_LIFF_ID_HERE' || !CONFIG.LIFF_ID) {
+          showError('ยังไม่ได้ตั้งค่า LIFF_ID<br><br>กรุณาแก้ไขใน index.html บรรทัด CONFIG');
+          return;
+        }
+        
+        if (CONFIG.API_URL === 'YOUR_APPS_SCRIPT_URL_HERE' || !CONFIG.API_URL) {
+          showError('ยังไม่ได้ตั้งค่า API_URL<br><br>กรุณาแก้ไขใน index.html บรรทัด CONFIG');
+          return;
+        }
+        
+        setLoadingText('กำลังเชื่อมต่อ LINE...');
+        
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        
+        setLoadingText('กำลังดึงข้อมูลผู้ใช้...');
+        lineProfile = await liff.getProfile();
+        
+        // โหลด Static Data
+        setLoadingText('กำลังโหลดข้อมูล...');
+        const staticData = await callAPI('getStaticData');
+        BANKS = staticData.banks || [];
+        CARD_TYPES = staticData.cardTypes || {};
+        
+        // ค้นหาลูกค้า
+        setLoadingText('กำลังค้นหาข้อมูลลูกค้า...');
+        const result = await callAPI('searchByLineId', { lineId: lineProfile.userId });
+        
+        if (result.success) {
+          customerInfo = result.data;
+          showCustomerInfo();
+          renderBankGrid();
+          setDefaultDate();
+          loadRecentData();
+          hideLoading();
+          document.getElementById('step1').classList.remove('hidden');
+        } else {
+          showError(result.message || 'ไม่พบข้อมูลลูกค้า<br><br>กรุณาติดต่อ Admin');
+        }
+          
+      } catch (error) {
+        console.error('LIFF Error:', error);
+        showError('ไม่สามารถเชื่อมต่อได้<br><br>' + error.message);
+      }
+    }
+    
+    function showError(message) {
+      hideLoading();
+      document.getElementById('errorMessage').innerHTML = message;
+      document.getElementById('errorScreen').classList.remove('hidden');
+    }
+    
+    function setLoadingText(text) {
+      document.getElementById('loadingText').textContent = text;
+    }
+    
+    function closeLiff() {
+      if (liff.isInClient()) {
+        liff.closeWindow();
+      } else {
+        window.close();
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', initLiff);
+    
+    // ============ CUSTOMER INFO ============
+    function showCustomerInfo() {
+      document.getElementById('customerInfoDisplay').innerHTML = `
+        <div class="customer-info-row"><span class="label">LINE</span><span class="value">${lineProfile?.displayName || '-'}</span></div>
+        <div class="customer-info-row"><span class="label">รหัส</span><span class="value">${customerInfo.custId}</span></div>
+        <div class="customer-info-row"><span class="label">ชื่อ</span><span class="value">${customerInfo.displayName || customerInfo.nameOnCard || '-'}</span></div>
+      `;
+    }
+    
+    async function loadRecentData() {
+      try {
+        recentData = await callAPI('getRecentData', { custId: customerInfo.custId });
+        renderQuickAmounts();
+        renderRecentShops();
+      } catch (e) {
+        console.error('Failed to load recent data:', e);
+      }
+    }
+    
+    // ============ BANK SELECTION ============
+    function renderBankGrid() {
+      document.getElementById('bankGrid').innerHTML = BANKS.map(bank =>
+        `<button class="bank-btn" data-bank="${bank}" onclick="toggleBank('${bank}')">${bank}</button>`
+      ).join('');
+    }
+    
+    function toggleBank(bank) {
+      const btn = document.querySelector(`.bank-btn[data-bank="${bank}"]`);
+      const idx = selectedBanks.indexOf(bank);
+      if (idx > -1) { selectedBanks.splice(idx, 1); btn.classList.remove('selected'); }
+      else { selectedBanks.push(bank); btn.classList.add('selected'); }
+      document.getElementById('loadCardsBtn').classList.toggle('hidden', selectedBanks.length === 0);
+    }
+    
+    async function loadCards() {
+      if (selectedBanks.length === 0) return;
+      
+      showLoading();
+      setLoadingText('กำลังดึงข้อมูลบัตร...');
+      
+      try {
+        customerCards = await callAPI('getCards', { 
+          custId: customerInfo.custId, 
+          banks: selectedBanks 
+        });
+        hideLoading();
+        renderCardList();
+        populateManualCardDropdown();
+        document.getElementById('step2').classList.remove('hidden');
+      } catch (e) {
+        hideLoading();
+        alert('เกิดข้อผิดพลาด: ' + e.message);
+      }
+    }
+    
+    // ============ CARD SELECTION ============
+    function renderCardList() {
+      const container = document.getElementById('cardListContainer');
+      let html = '';
+      for (const bank of selectedBanks) {
+        const cards = customerCards[bank] || [];
+        const isGrid = cards.length >= 4;
+        html += `<div class="bank-section"><div class="bank-header"><span class="bank-icon ${bank.toLowerCase()}">${bank.charAt(0)}</span><span class="bank-name">${bank}</span><span class="bank-count">${cards.length} ใบ</span></div><div class="${isGrid ? 'card-list-grid' : 'card-list-single'}">`;
+        if (cards.length === 0) html += `<div style="color:rgba(255,255,255,0.6);font-size:0.85rem;padding:10px;">ไม่พบบัตรในระบบ</div>`;
+        for (const card of cards) {
+          const isChecked = selectedCards.some(c => c.cardId === card.cardId);
+          const cardJson = JSON.stringify(card).replace(/"/g, '&quot;');
+          if (isGrid) {
+            html += `<label class="card-checkbox-compact ${isChecked ? 'checked' : ''}" data-card-id="${card.cardId}"><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCardSelection(this, ${cardJson})"><div class="card-info"><div class="card-name">${card.cardType}</div><div class="card-detail">****${card.last4}</div></div></label>`;
+          } else {
+            html += `<label class="card-checkbox ${isChecked ? 'checked' : ''}" data-card-id="${card.cardId}"><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCardSelection(this, ${cardJson})"><div class="card-info"><div class="card-name">${card.cardType}</div><div class="card-detail">****${card.last4} | ${card.fullName}</div></div></label>`;
+          }
+        }
+        html += `</div></div>`;
+      }
+      container.innerHTML = html;
+    }
+    
+    function toggleCardSelection(checkbox, cardData) {
+      const label = checkbox.closest('.card-checkbox, .card-checkbox-compact');
+      if (checkbox.checked) {
+        if (!selectedCards.some(c => c.cardId === cardData.cardId)) selectedCards.push({ ...cardData, amount: 0 });
+        label.classList.add('checked');
+      } else {
+        selectedCards = selectedCards.filter(c => c.cardId !== cardData.cardId);
+        label.classList.remove('checked');
+      }
+      updateSelectedCardsSection();
+    }
+    
+    function populateManualCardDropdown() {
+      let html = '<option value="">-- เลือกประเภทบัตร --</option>';
+      for (const bank of selectedBanks) {
+        const types = CARD_TYPES[bank] || [];
+        if (types.length > 0) {
+          html += `<optgroup label="${bank}">`;
+          for (const t of types) html += `<option value="${t.name}" data-type="${t.type}">${t.name}</option>`;
+          html += `</optgroup>`;
+        }
+      }
+      document.getElementById('manualCardType').innerHTML = html;
+    }
+    
+    function toggleManualCardForm() {
+      document.getElementById('manualCardForm').classList.toggle('show');
+      document.getElementById('manualFullName').value = customerInfo.nameOnCard || '';
+    }
+    
+    function addManualCard() {
+      const cardType = document.getElementById('manualCardType').value;
+      const last4 = document.getElementById('manualLast4').value.trim();
+      const fullName = document.getElementById('manualFullName').value.trim();
+      if (!cardType) { alert('กรุณาเลือกประเภทบัตร'); return; }
+      if (!last4 || last4.length !== 4) { alert('กรุณากรอกเลข 4 ตัวท้าย'); return; }
+      if (!fullName) { alert('กรุณากรอกชื่อบนบัตร'); return; }
+      const option = document.querySelector(`#manualCardType option[value="${cardType}"]`);
+      const typeCode = option ? option.dataset.type : '';
+      selectedCards.push({ cardId: 'NEW_' + Date.now(), cardType, last4: last4.padStart(4, '0'), fullName: fullName.toUpperCase(), typeCode, isManual: true, amount: 0 });
+      updateSelectedCardsSection();
+      document.getElementById('manualLast4').value = '';
+      document.getElementById('manualCardForm').classList.remove('show');
+      alert('เพิ่มบัตรเรียบร้อย');
+    }
+    
+    // ============ AMOUNT ENTRY ============
+    function updateSelectedCardsSection() {
+      const container = document.getElementById('selectedCardsSection');
+      if (selectedCards.length === 0) {
+        container.innerHTML = '<div style="color:rgba(255,255,255,0.6);text-align:center;padding:20px;">ยังไม่ได้เลือกบัตร</div>';
+        ['step3', 'step4', 'submitSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+        return;
+      }
+      ['step3', 'step4', 'submitSection'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+      let html = '';
+      selectedCards.forEach((card, index) => {
+        html += `<div class="selected-card-item" data-index="${index}"><div class="selected-card-header"><div class="selected-card-info"><h4>${card.cardType}</h4><p>****${card.last4} | ${card.fullName}</p></div><button class="remove-card-btn" onclick="removeSelectedCard(${index})">×</button></div><div class="amount-input-group"><input type="tel" class="amount-input card-amount-input" data-index="${index}" value="${card.amount || ''}" placeholder="0" inputmode="decimal" onkeyup="updateCardAmount(${index}, this.value)"><span class="currency-label">บาท</span></div></div>`;
+      });
+      container.innerHTML = html;
+      calculateTotal();
+    }
+    
+    function removeSelectedCard(index) {
+      const card = selectedCards[index];
+      selectedCards.splice(index, 1);
+      const checkbox = document.querySelector(`[data-card-id="${card.cardId}"] input[type="checkbox"]`);
+      if (checkbox) { checkbox.checked = false; checkbox.closest('.card-checkbox, .card-checkbox-compact').classList.remove('checked'); }
+      updateSelectedCardsSection();
+    }
+    
+    function updateCardAmount(index, value) { selectedCards[index].amount = parseFloat(value) || 0; calculateTotal(); }
+    
+    function toggleSameAmount() {
+      document.getElementById('sameAmountInput').classList.toggle('hidden', !document.getElementById('sameAmountToggle').checked);
+    }
+    
+    function applyGlobalAmount() {
+      const amount = parseFloat(document.getElementById('globalAmount').value) || 0;
+      selectedCards.forEach((card, index) => { card.amount = amount; const input = document.querySelector(`.card-amount-input[data-index="${index}"]`); if (input) input.value = amount || ''; });
+      calculateTotal();
+    }
+    
+    function applyQuickAmount(amount) {
+      if (document.getElementById('sameAmountToggle').checked) { document.getElementById('globalAmount').value = amount; applyGlobalAmount(); }
+      else { const firstInput = document.querySelector('.card-amount-input:focus') || document.querySelector('.card-amount-input'); if (firstInput) { const index = parseInt(firstInput.dataset.index); firstInput.value = amount; updateCardAmount(index, amount); } }
+    }
+    
+    function calculateTotal() { document.getElementById('totalAmount').textContent = '฿' + selectedCards.reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0).toLocaleString(); }
+    
+    function renderQuickAmounts() {
+      const section = document.getElementById('quickAmountSection');
+      if (!recentData.amounts || recentData.amounts.length === 0) { section.classList.add('hidden'); return; }
+      section.classList.remove('hidden');
+      document.getElementById('quickAmountBtns').innerHTML = recentData.amounts.map(amt => `<button class="quick-amount-btn" onclick="applyQuickAmount(${amt})">฿${amt.toLocaleString()}</button>`).join('');
+    }
+    
+    // ============ SHOP & DATE ============
+    function setDefaultDate() { document.getElementById('dateInput').value = new Date().toISOString().split('T')[0]; }
+    
+    function selectQuickDate(type) {
+      document.querySelectorAll('.quick-date-btn').forEach(b => b.classList.remove('selected'));
+      document.querySelector(`.quick-date-btn[data-date="${type}"]`).classList.add('selected');
+      const dateInput = document.getElementById('dateInput');
+      const today = new Date();
+      if (type === 'today') { dateInput.classList.add('hidden'); dateInput.value = today.toISOString().split('T')[0]; }
+      else if (type === 'yesterday') { dateInput.classList.add('hidden'); today.setDate(today.getDate() - 1); dateInput.value = today.toISOString().split('T')[0]; }
+      else { dateInput.classList.remove('hidden'); }
+    }
+    
+    function renderRecentShops() {
+      const container = document.getElementById('recentShopsContainer');
+      if (!recentData.shops || recentData.shops.length === 0) { container.classList.add('hidden'); return; }
+      container.classList.remove('hidden');
+      container.innerHTML = recentData.shops.map(shop => `<button class="recent-shop-btn" onclick="selectRecentShop('${shop}')">${shop}</button>`).join('');
+    }
+    
+    function selectRecentShop(shop) { document.getElementById('shopInput').value = shop; }
+    
+    // ============ CONFIRMATION & SUBMIT ============
+    function showConfirmModal() {
+      if (selectedCards.some(c => !c.amount || c.amount <= 0)) { alert('กรุณากรอกยอดเงินให้ครบทุกบัตร'); return; }
+      const total = selectedCards.reduce((sum, c) => sum + parseFloat(c.amount), 0);
+      const date = document.getElementById('dateInput').value;
+      const shop = document.getElementById('shopInput').value.trim();
+      let html = `<div class="summary-list"><div class="summary-item"><span class="label">รหัสลูกค้า</span><span class="value">${customerInfo.custId}</span></div><div class="summary-item"><span class="label">วันที่รูด</span><span class="value">${formatDate(date)}</span></div><div class="summary-item"><span class="label">ร้านค้า</span><span class="value">${shop || '-'}</span></div><div class="summary-item" style="border-top:2px solid rgba(255,255,255,0.2);padding-top:12px;margin-top:8px;"><span class="label">💳 รายการบัตร (${selectedCards.length} ใบ)</span><span class="value"></span></div>`;
+      selectedCards.forEach(card => { html += `<div class="summary-item" style="padding-left:16px;"><span class="label">${card.cardType} ****${card.last4}</span><span class="value">฿${Number(card.amount).toLocaleString()}</span></div>`; });
+      html += `<div class="summary-item" style="border-top:2px solid rgba(255,255,255,0.2);padding-top:12px;margin-top:8px;"><span class="label" style="font-weight:600;">💰 รวมทั้งหมด</span><span class="value" style="font-size:1.2rem;color:#00d084;">฿${total.toLocaleString()}</span></div></div>`;
+      document.getElementById('confirmModalBody').innerHTML = html;
+      document.getElementById('confirmModal').classList.add('show');
+    }
+    
+    function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('show'); }
+    
+    async function submitForm() {
+      closeConfirmModal();
+      showLoading();
+      setLoadingText('กำลังบันทึกข้อมูล...');
+      
+      try {
+        const result = await postAPI('save', {
+          custId: customerInfo.custId,
+          entries: selectedCards.map(c => ({ cardId: c.cardId, cardType: c.cardType, last4: c.last4, fullName: c.fullName, typeCode: c.typeCode, amount: parseFloat(c.amount) })),
+          shopName: document.getElementById('shopInput').value.trim(),
+          date: formatDate(document.getElementById('dateInput').value),
+          customerInfo: customerInfo
+        });
+        
+        hideLoading();
+        
+        if (result.success) {
+          showSuccessScreen(result.data);
+        } else {
+          alert(result.message || 'เกิดข้อผิดพลาด');
+        }
+      } catch (e) {
+        hideLoading();
+        alert('เกิดข้อผิดพลาด: ' + e.message);
+      }
+    }
+    
+    function showSuccessScreen(data) {
+      ['step1', 'step2', 'step3', 'step4', 'submitSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      let html = `<div class="summary-item"><span class="label">รหัสลูกค้า</span><span class="value">${customerInfo.custId}</span></div><div class="summary-item"><span class="label">บันทึกเมื่อ</span><span class="value">${data.timestamp}</span></div>`;
+      data.entries.forEach(entry => { html += `<div class="summary-item"><span class="label">${entry.cardType} ****${entry.last4}</span><span class="value">฿${Number(entry.amount).toLocaleString()}</span></div>`; });
+      html += `<div class="summary-item" style="border-top:2px solid rgba(255,255,255,0.2);padding-top:12px;margin-top:8px;"><span class="label" style="font-weight:600;">💰 รวมทั้งหมด</span><span class="value" style="font-size:1.2rem;color:#00d084;">฿${data.totalAmount.toLocaleString()}</span></div>`;
+      if (data.newCards?.length > 0) html += `<div class="summary-item" style="border-top:2px solid rgba(255,255,255,0.2);padding-top:12px;margin-top:8px;"><span class="label">🆕 บัตรใหม่ที่เพิ่ม</span><span class="value">${data.newCards.length} ใบ</span></div>`;
+      document.getElementById('successSummary').innerHTML = html;
+      document.getElementById('successScreen').classList.remove('hidden');
+    }
+    
+    function resetForm() {
+      selectedBanks = []; customerCards = {}; selectedCards = [];
+      document.querySelectorAll('.bank-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('loadCardsBtn').classList.add('hidden');
+      document.getElementById('sameAmountToggle').checked = false;
+      document.getElementById('sameAmountInput').classList.add('hidden');
+      document.getElementById('globalAmount').value = '';
+      document.getElementById('shopInput').value = '';
+      selectQuickDate('today');
+      document.getElementById('step1').classList.remove('hidden');
+      ['step2', 'step3', 'step4', 'submitSection', 'successScreen'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      loadRecentData();
+    }
+    
+    // ============ UTILITIES ============
+    function formatDate(dateStr) { if (!dateStr) return ''; return new Date(dateStr).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+    function showLoading() { document.getElementById('loadingOverlay').classList.remove('hide'); }
+    function hideLoading() { document.getElementById('loadingOverlay').classList.add('hide'); }
+  </script>
+</body>
+</html>
