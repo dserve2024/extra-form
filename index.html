@@ -674,6 +674,8 @@
       const startTime = performance.now();
       
       try {
+        console.log('🚀 1. Starting init...');
+        
         // Check config
         if (CONFIG.LIFF_ID === 'YOUR_LIFF_ID_HERE') {
           showError('ยังไม่ได้ตั้งค่า LIFF_ID');
@@ -684,21 +686,28 @@
           return;
         }
         
+        console.log('🔗 2. Init Supabase...');
         // Init Supabase
         supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         
+        console.log('📱 3. Init LIFF...');
         setLoading('กำลังเชื่อมต่อ LINE...');
         await liff.init({ liffId: CONFIG.LIFF_ID });
         
         if (!liff.isLoggedIn()) {
+          console.log('🔐 Not logged in, redirecting...');
           liff.login();
           return;
         }
         
+        console.log('👤 4. Get LINE profile...');
         // Get LINE profile
         lineProfile = await liff.getProfile();
+        console.log('LINE User ID:', lineProfile.userId);
+        console.log('LINE Display Name:', lineProfile.displayName);
         
         // ⚡ Query จาก Supabase (เร็วมาก!)
+        console.log('🔍 5. Query Supabase users...');
         setLoading('กำลังดึงข้อมูล...');
         
         // Query user
@@ -708,25 +717,39 @@
           .eq('line_user_id', lineProfile.userId)
           .single();
         
-        if (userError || !userData) {
-          showError('ไม่พบข้อมูลลูกค้า กรุณาติดต่อ Admin');
+        console.log('📊 6. Query result:', { userData, userError });
+        
+        if (userError) {
+          console.error('❌ User query error:', userError);
+          showError('ไม่พบข้อมูลลูกค้า กรุณาติดต่อ Admin\n\nLINE ID: ' + lineProfile.userId);
+          return;
+        }
+        
+        if (!userData) {
+          console.error('❌ No user data found');
+          showError('ไม่พบข้อมูลลูกค้า กรุณาติดต่อ Admin\n\nLINE ID: ' + lineProfile.userId);
           return;
         }
         
         customerInfo = userData;
+        console.log('✅ 7. User found:', customerInfo);
         
         // Query cards
+        console.log('🃏 8. Query Supabase cards...');
         const { data: cardsData, error: cardsError } = await supabase
           .from('cards')
           .select('*')
           .eq('cust_id', customerInfo.cust_id)
           .eq('available', true);
         
+        console.log('📊 9. Cards result:', { count: cardsData?.length, cardsError });
+        
         if (cardsError) {
           console.error('Cards error:', cardsError);
         }
         
         allCards = cardsData || [];
+        console.log('🃏 10. Total available cards:', allCards.length);
         
         // Render UI
         renderProfile();
