@@ -189,6 +189,35 @@
       border-radius: 9px;
     }
     
+    /* ⭐ Checkmark overlay เมื่อเลือก */
+    .card-btn .check-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 208, 132, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      border-radius: 9px;
+      z-index: 10;
+    }
+    
+    .card-btn .check-overlay::after {
+      content: '✓';
+      font-size: 2.5rem;
+      color: #fff;
+      font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .card-btn.selected .check-overlay {
+      opacity: 1;
+    }
+    
     /* Amount Section */
     .amount-header {
       display: flex;
@@ -977,6 +1006,7 @@
             <div class="card-name">${truncate(card.card_type, 12)}</div>
             <div class="card-last4">${card.last4}</div>
           </div>
+          <div class="check-overlay"></div>
         </div>`;
       }).join('');
       
