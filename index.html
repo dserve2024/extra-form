@@ -6,6 +6,8 @@
   <title>D-SERVE แจ้งยอดนอกรอบ</title>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -507,6 +509,17 @@
       font-family: 'Prompt', sans-serif;
     }
     
+    /* Speed indicator */
+    .speed-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(0,208,132,0.3);
+      border-radius: 10px;
+      font-size: 0.6rem;
+      color: #00d084;
+      margin-left: 8px;
+    }
+    
     .hidden { display: none !important; }
   </style>
 </head>
@@ -514,7 +527,7 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h1>💳 D-SERVE แจ้งยอดนอกรอบ</h1>
+      <h1>💳 D-SERVE แจ้งยอดนอกรอบ <span class="speed-badge">⚡ Supabase</span></h1>
     </div>
     
     <!-- Error Screen -->
@@ -574,7 +587,11 @@
         </div>
         
         <!-- Quick Amount -->
-        <div class="quick-btns" id="quickBtns"></div>
+        <div class="quick-btns" id="quickBtns">
+          <button class="quick-btn" onclick="applyQuickAmount(5000)">฿5,000</button>
+          <button class="quick-btn" onclick="applyQuickAmount(10000)">฿10,000</button>
+          <button class="quick-btn" onclick="applyQuickAmount(15000)">฿15,000</button>
+        </div>
         
         <!-- Toggle ON: Single input + card tags -->
         <div id="sameAmountView">
@@ -627,32 +644,48 @@
     // ⚠️ CONFIG - แก้ไขตรงนี้!
     // ═══════════════════════════════════════════════════════════════
     const CONFIG = {
+      // LINE LIFF
       LIFF_ID: '2008957662-eSzXKJNi',
-      API_URL: 'https://script.google.com/macros/s/AKfycbyghkPL3lSsZpm_DKZz78f2MseanH8HUQ92CfaVb6r3MvCs1TgUcXhdm9sX-JiI7t_Z/exec'
+      
+      // Supabase (สำหรับอ่านข้อมูล - เร็ว!)
+      SUPABASE_URL: 'https://momguihyvsjuexpficdf.supabase.co',
+      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vbWd1aWh5dnNqdWV4cGZpY2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxODQ0ODUsImV4cCI6MjA4NDc2MDQ4NX0.nkdyabWT39acE9ib_BEsTXcKsDpal_myX9PbLvHUnlk',
+      
+      // Apps Script (สำหรับบันทึก - ไป Sheets เหมือนเดิม)
+      APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyghkPL3lSsZpm_DKZz78f2MseanH8HUQ92CfaVb6r3MvCs1TgUcXhdm9sX-JiI7t_Z/exec',
+      
+      // Threshold
+      CARD_THRESHOLD: 8
     };
     // ═══════════════════════════════════════════════════════════════
+    
+    // Supabase Client
+    let supabase;
     
     // State
     let lineProfile = null;
     let customerInfo = null;
-    let staticData = null;
-    let cardData = null;
+    let allCards = [];
     let selectedBanks = [];
     let selectedCards = [];
-    let recentData = { amounts: [], shops: [] };
     
     // ============ INIT ============
     async function init() {
+      const startTime = performance.now();
+      
       try {
         // Check config
         if (CONFIG.LIFF_ID === 'YOUR_LIFF_ID_HERE') {
           showError('ยังไม่ได้ตั้งค่า LIFF_ID');
           return;
         }
-        if (CONFIG.API_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-          showError('ยังไม่ได้ตั้งค่า API_URL');
+        if (CONFIG.SUPABASE_URL === 'https://YOUR_PROJECT_ID.supabase.co') {
+          showError('ยังไม่ได้ตั้งค่า SUPABASE_URL');
           return;
         }
+        
+        // Init Supabase
+        supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         
         setLoading('กำลังเชื่อมต่อ LINE...');
         await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -663,45 +696,54 @@
         }
         
         // Get LINE profile
-        setLoading('กำลังดึงข้อมูลผู้ใช้...');
         lineProfile = await liff.getProfile();
         
-        // Get static data
-        setLoading('กำลังโหลดข้อมูล...');
-        staticData = await callAPI('getStaticData');
+        // ⚡ Query จาก Supabase (เร็วมาก!)
+        setLoading('กำลังดึงข้อมูล...');
         
-        // Search customer
-        setLoading('กำลังค้นหาข้อมูลลูกค้า...');
-        const result = await callAPI('searchByLineId', { lineId: lineProfile.userId });
+        // Query user
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('line_user_id', lineProfile.userId)
+          .single();
         
-        if (!result.success) {
-          showError(result.message || 'ไม่พบข้อมูลลูกค้า');
+        if (userError || !userData) {
+          showError('ไม่พบข้อมูลลูกค้า กรุณาติดต่อ Admin');
           return;
         }
         
-        customerInfo = result.data;
+        customerInfo = userData;
         
-        // Get cards
-        setLoading('กำลังดึงข้อมูลบัตร...');
-        cardData = await callAPI('getCards', { custId: customerInfo.custId });
+        // Query cards
+        const { data: cardsData, error: cardsError } = await supabase
+          .from('cards')
+          .select('*')
+          .eq('cust_id', customerInfo.cust_id)
+          .eq('available', true);
         
-        // Get recent data
-        recentData = await callAPI('getRecentData', { custId: customerInfo.custId });
+        if (cardsError) {
+          console.error('Cards error:', cardsError);
+        }
+        
+        allCards = cardsData || [];
         
         // Render UI
         renderProfile();
-        renderQuickAmounts();
-        renderShopSuggestions();
         setDefaultDate();
         
         // Check if need bank selection
-        if (cardData.needBankSelection) {
+        if (allCards.length > CONFIG.CARD_THRESHOLD) {
           renderBankSelection();
         } else {
-          renderCards(cardData.cards);
+          renderCards(allCards);
         }
         
         hideLoading();
+        
+        // Log performance
+        const endTime = performance.now();
+        console.log(`⚡ Load time: ${Math.round(endTime - startTime)}ms`);
         
       } catch (error) {
         console.error('Init error:', error);
@@ -709,38 +751,16 @@
       }
     }
     
-    // ============ API ============
-    async function callAPI(action, params = {}) {
-      const url = new URL(CONFIG.API_URL);
-      url.searchParams.set('action', action);
-      
-      for (const [key, value] of Object.entries(params)) {
-        url.searchParams.set(key, typeof value === 'object' ? JSON.stringify(value) : value);
-      }
-      
-      const response = await fetch(url.toString());
-      return response.json();
-    }
-    
-    async function postAPI(data) {
-      const response = await fetch(CONFIG.API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(data)
-      });
-      return response.json();
-    }
-    
     // ============ RENDER ============
     function renderProfile() {
       document.getElementById('profileImg').src = lineProfile.pictureUrl || '';
-      document.getElementById('profileRow1').textContent = `${customerInfo.custId} | ${lineProfile.displayName}`;
-      document.getElementById('profileRow2').textContent = customerInfo.fullName || customerInfo.nameOnCard || '-';
+      document.getElementById('profileRow1').textContent = `${customerInfo.cust_id} | ${lineProfile.displayName}`;
+      document.getElementById('profileRow2').textContent = customerInfo.full_name || customerInfo.name_on_card || '-';
       document.getElementById('profileSection').classList.remove('hidden');
     }
     
     function renderBankSelection() {
-      const banks = cardData.availableBanks;
+      const banks = [...new Set(allCards.map(c => c.bank).filter(Boolean))];
       document.getElementById('bankGrid').innerHTML = banks.map(bank =>
         `<button class="bank-btn" data-bank="${bank}" onclick="toggleBank('${bank}')">${bank}</button>`
       ).join('');
@@ -760,37 +780,29 @@
       }
     }
     
-    async function loadFilteredCards() {
+    function loadFilteredCards() {
       if (selectedBanks.length === 0) {
         alert('กรุณาเลือกธนาคารอย่างน้อย 1 ธนาคาร');
         return;
       }
       
-      setLoading('กำลังดึงข้อมูลบัตร...');
-      cardData = await callAPI('getCards', { custId: customerInfo.custId, banks: selectedBanks });
-      hideLoading();
-      
+      const filtered = allCards.filter(c => selectedBanks.includes(c.bank));
       document.getElementById('bankSection').classList.add('hidden');
-      renderCards(cardData.cards);
+      renderCards(filtered);
     }
     
     function renderCards(cards) {
-      let allCards = [];
-      for (const bank in cards) {
-        allCards = allCards.concat(cards[bank]);
-      }
+      window.displayedCards = cards;
       
-      document.getElementById('cardGrid').innerHTML = allCards.map(card =>
-        `<div class="card-btn ${selectedCards.some(c => c.cardId === card.cardId) ? 'selected' : ''}" 
-              data-card-id="${card.cardId}"
-              onclick="toggleCard('${card.cardId}')">
-          <div class="card-name">${truncate(card.cardType, 8)}</div>
+      document.getElementById('cardGrid').innerHTML = cards.map(card =>
+        `<div class="card-btn ${selectedCards.some(c => c.card_id === card.card_id) ? 'selected' : ''}" 
+              data-card-id="${card.card_id}"
+              onclick="toggleCard('${card.card_id}')">
+          <div class="card-name">${truncate(card.card_type, 8)}</div>
           <div class="card-last4">${card.last4}</div>
         </div>`
       ).join('');
       
-      // Store for later use
-      window.allCardsData = allCards;
       document.getElementById('cardSection').classList.remove('hidden');
     }
     
@@ -800,10 +812,10 @@
     }
     
     function toggleCard(cardId) {
-      const card = window.allCardsData.find(c => c.cardId === cardId);
+      const card = window.displayedCards.find(c => c.card_id === cardId);
       if (!card) return;
       
-      const idx = selectedCards.findIndex(c => c.cardId === cardId);
+      const idx = selectedCards.findIndex(c => c.card_id === cardId);
       
       if (idx > -1) {
         selectedCards.splice(idx, 1);
@@ -814,7 +826,7 @@
       // Update UI
       document.querySelectorAll('.card-btn').forEach(btn => {
         const id = btn.dataset.cardId;
-        btn.classList.toggle('selected', selectedCards.some(c => c.cardId === id));
+        btn.classList.toggle('selected', selectedCards.some(c => c.card_id === id));
       });
       
       updateAmountSection();
@@ -867,8 +879,8 @@
     function renderSelectedCardsDisplay() {
       document.getElementById('selectedCardsDisplay').innerHTML = selectedCards.map(card =>
         `<div class="selected-card-tag">
-          <div class="name">${truncate(card.cardType, 8)} ${card.last4}</div>
-          <div class="owner">${truncate(card.fullName, 12)}</div>
+          <div class="name">${truncate(card.card_type, 8)} ${card.last4}</div>
+          <div class="owner">${truncate(card.full_name, 12)}</div>
         </div>`
       ).join('');
     }
@@ -878,8 +890,8 @@
         `<div class="amount-card">
           <div class="card-header">
             <div class="card-info">
-              <div class="name">${truncate(card.cardType, 8)} ${card.last4}</div>
-              <div class="owner">${truncate(card.fullName, 12)}</div>
+              <div class="name">${truncate(card.card_type, 8)} ${card.last4}</div>
+              <div class="owner">${truncate(card.full_name, 12)}</div>
             </div>
             <button class="remove-btn" onclick="removeCard(${i})">×</button>
           </div>
@@ -897,8 +909,7 @@
       const card = selectedCards[index];
       selectedCards.splice(index, 1);
       
-      // Update card grid
-      const btn = document.querySelector(`.card-btn[data-card-id="${card.cardId}"]`);
+      const btn = document.querySelector(`.card-btn[data-card-id="${card.card_id}"]`);
       if (btn) btn.classList.remove('selected');
       
       updateAmountSection();
@@ -908,37 +919,17 @@
       selectedCards[index].amount = parseNumber(value);
     }
     
-    function renderQuickAmounts() {
-      const amounts = recentData.amounts.length > 0 ? recentData.amounts : [5000, 10000, 15000];
-      document.getElementById('quickBtns').innerHTML = amounts.map(amt =>
-        `<button class="quick-btn" onclick="applyQuickAmount(${amt})">฿${amt.toLocaleString()}</button>`
-      ).join('');
-    }
-    
     function applyQuickAmount(amount) {
       const isChecked = document.getElementById('sameToggle').checked;
       
       if (isChecked && selectedCards.length > 1) {
         document.getElementById('globalAmount').value = amount.toLocaleString();
       } else {
-        // Fill all individual inputs
         document.querySelectorAll('.amount-card .amount-input').forEach((input, i) => {
           input.value = amount.toLocaleString();
           selectedCards[i].amount = amount;
         });
       }
-    }
-    
-    function renderShopSuggestions() {
-      const shops = recentData.shops || [];
-      if (shops.length === 0) {
-        document.getElementById('shopSuggestions').classList.add('hidden');
-        return;
-      }
-      
-      document.getElementById('shopSuggestions').innerHTML = shops.map(shop =>
-        `<button class="shop-btn" onclick="selectShop(this,'${shop}')">${shop}</button>`
-      ).join('');
     }
     
     function selectShop(btn, name) {
@@ -972,7 +963,7 @@
       }
     }
     
-    // ============ SUBMIT ============
+    // ============ SUBMIT (ไป Apps Script → Sheets) ============
     async function submitForm() {
       // Validate
       const isChecked = document.getElementById('sameToggle').checked && selectedCards.length > 1;
@@ -992,45 +983,49 @@
         }
       }
       
-      // Get date
       const dateInput = document.getElementById('dateInput').value;
       const date = formatDateThai(dateInput);
-      
-      // Get shop
       const shopName = document.getElementById('shopInput').value.trim();
       
-      // Confirm
       const total = selectedCards.reduce((sum, c) => sum + Number(c.amount), 0);
-      const confirmMsg = `ยืนยันส่งข้อมูล?\n\nจำนวน ${selectedCards.length} บัตร\nรวม ฿${total.toLocaleString()}`;
+      if (!confirm(`ยืนยันส่งข้อมูล?\n\nจำนวน ${selectedCards.length} บัตร\nรวม ฿${total.toLocaleString()}`)) return;
       
-      if (!confirm(confirmMsg)) return;
-      
-      // Submit
       setLoading('กำลังบันทึกข้อมูล...');
       
       try {
-        const result = await postAPI({
-          action: 'save',
-          custId: customerInfo.custId,
-          entries: selectedCards.map(c => ({
-            cardId: c.cardId,
-            cardType: c.cardType,
-            last4: c.last4,
-            fullName: c.fullName,
-            typeCode: c.typeCode,
-            amount: Number(c.amount)
-          })),
-          shopName: shopName,
-          date: date,
-          customerInfo: customerInfo
+        // บันทึกไป Apps Script (ไป Sheets เหมือนเดิม)
+        const response = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'save',
+            custId: customerInfo.cust_id,
+            entries: selectedCards.map(c => ({
+              cardId: c.card_id,
+              cardType: c.card_type,
+              last4: c.last4,
+              fullName: c.full_name,
+              typeCode: c.type_code,
+              amount: Number(c.amount)
+            })),
+            shopName: shopName,
+            date: date,
+            customerInfo: {
+              lineUserId: lineProfile.userId,
+              displayName: lineProfile.displayName,
+              fullName: customerInfo.full_name,
+              phone: customerInfo.phone
+            }
+          })
         });
         
+        const result = await response.json();
         hideLoading();
         
         if (result.success) {
           showSuccess(result.data);
         } else {
-          alert(result.message || 'เกิดข้อผิดพลาด');
+          alert(result.message || result.error || 'เกิดข้อผิดพลาด');
         }
         
       } catch (error) {
@@ -1059,7 +1054,6 @@
       document.getElementById('successScreen').classList.add('hidden');
       document.getElementById('mainContent').classList.remove('hidden');
       
-      // Reset UI
       document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('selected'));
       document.querySelectorAll('.bank-btn').forEach(btn => btn.classList.remove('selected'));
       document.getElementById('globalAmount').value = '';
@@ -1082,9 +1076,7 @@
     // ============ HELPERS ============
     function formatAmount(input) {
       let value = input.value.replace(/[^0-9]/g, '');
-      if (value) {
-        value = parseInt(value).toLocaleString();
-      }
+      if (value) value = parseInt(value).toLocaleString();
       input.value = value;
     }
     
