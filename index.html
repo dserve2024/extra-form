@@ -133,33 +133,40 @@
       box-shadow: 0 0 0 2px rgba(0,208,132,0.5);
     }
     
-    /* Overlay สำหรับข้อความ */
+    /* Overlay - ข้อความกลางรูป ⭐ */
     .card-btn .card-overlay {
       position: absolute;
-      bottom: 0;
+      top: 0;
       left: 0;
       right: 0;
-      padding: 6px 8px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.85));
-      text-align: left;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: rgba(0,0,0,0.45);
+      padding: 4px;
     }
     
     .card-btn .card-name {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: #fff;
       font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      max-width: 95%;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
     }
     
     .card-btn .card-last4 {
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       color: #fff;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      margin-top: 2px;
     }
     
     /* ถ้าไม่มีรูป */
@@ -168,12 +175,6 @@
     }
     
     .card-btn.no-image .card-overlay {
-      top: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
       background: transparent;
     }
     
