@@ -565,9 +565,8 @@
       
       <!-- Bank Selection (>8 cards) -->
       <div id="bankSection" class="section-box hidden">
-        <div class="section-title">🏦 เลือกธนาคาร</div>
+        <div class="section-title">🏦 เลือกธนาคาร (กดเลือกได้หลายธนาคาร)</div>
         <div class="bank-grid" id="bankGrid"></div>
-        <button class="load-cards-btn" onclick="loadFilteredCards()">ดึงข้อมูลบัตร</button>
       </div>
       
       <!-- Card Selection -->
@@ -865,6 +864,10 @@
         `<button class="bank-btn" data-bank="${bank}" onclick="toggleBank('${bank}')">${bank}</button>`
       ).join('');
       document.getElementById('bankSection').classList.remove('hidden');
+      
+      // ⭐ แสดง Card Section ด้วย (ว่างก่อน)
+      document.getElementById('cardSection').classList.remove('hidden');
+      document.getElementById('cardGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,0.5);font-size:0.8rem;padding:20px;">👆 กรุณาเลือกธนาคารด้านบน</div>';
     }
     
     function toggleBank(bank) {
@@ -878,18 +881,23 @@
         selectedBanks.push(bank);
         btn.classList.add('selected');
       }
+      
+      // ⭐ Render cards ทันทีหลังเลือก/ยกเลือก
+      updateFilteredCards();
     }
     
-    function loadFilteredCards() {
+    // ⭐ ฟังก์ชันใหม่: อัพเดทบัตรตาม bank ที่เลือก
+    function updateFilteredCards() {
       if (selectedBanks.length === 0) {
-        alert('กรุณาเลือกธนาคารอย่างน้อย 1 ธนาคาร');
+        document.getElementById('cardGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,0.5);font-size:0.8rem;padding:20px;">👆 กรุณาเลือกธนาคารด้านบน</div>';
         return;
       }
       
       const filtered = allCards.filter(c => selectedBanks.includes(c.bank));
-      document.getElementById('bankSection').classList.add('hidden');
       renderCards(filtered);
     }
+    
+    // ⭐ ลบ loadFilteredCards() ออก (ไม่ใช้แล้ว)
     
     function renderCards(cards) {
       window.displayedCards = cards;
@@ -1161,6 +1169,11 @@
       document.querySelectorAll('.shop-btn').forEach(b => b.classList.remove('selected'));
       selectDate(document.querySelector('.date-btn[data-type="today"]'), 'today');
       document.getElementById('sameToggle').checked = true;
+      
+      // ⭐ รีเซ็ต card grid (ถ้ามี bank selection)
+      if (allCards.length > CONFIG.CARD_THRESHOLD) {
+        updateFilteredCards();
+      }
       
       updateAmountSection();
     }
