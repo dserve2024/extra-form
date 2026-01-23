@@ -655,7 +655,10 @@
       APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyghkPL3lSsZpm_DKZz78f2MseanH8HUQ92CfaVb6r3MvCs1TgUcXhdm9sX-JiI7t_Z/exec',
       
       // Threshold
-      CARD_THRESHOLD: 8
+      CARD_THRESHOLD: 8,
+      
+      // ⭐ Allowed Banks (กรองแค่ธนาคารที่ต้องการ)
+      ALLOWED_BANKS: ['KCC', 'KFV', 'LOTUS', 'THE1', 'KBANK', 'SCB', 'TTB', 'UOB']
     };
     // ═══════════════════════════════════════════════════════════════
     
@@ -668,6 +671,8 @@
     let allCards = [];
     let selectedBanks = [];
     let selectedCards = [];
+    let recentAmounts = [5000, 10000, 15000]; // ⭐ Default values
+    let recentShops = []; // ⭐ ร้านค้าล่าสุด
     
     // ============ INIT ============
     async function init() {
@@ -726,7 +731,13 @@
           console.error('Cards error:', cardsError);
         }
         
-        allCards = cardsData || [];
+        // ⭐ กรองเฉพาะ banks ที่อนุญาต
+        allCards = (cardsData || []).filter(card => 
+          CONFIG.ALLOWED_BANKS.includes(card.bank)
+        );
+        
+        // ⭐ ดึง Recent Data (ยอดและร้านค้าล่าสุด) แบบ Background
+        loadRecentData(customerInfo.cust_id);
         
         // Render UI
         renderProfile();
@@ -749,6 +760,95 @@
         console.error('Init error:', error);
         showError('เกิดข้อผิดพลาด: ' + error.message);
       }
+    }
+    
+    // ============ RECENT DATA (ยอดและร้านค้าล่าสุด) ============
+    /**
+     * ⭐ ดึงยอดและร้านค้าล่าสุดจาก Supabase (Background)
+     */
+    async function loadRecentData(custId) {
+      try {
+        const { data, error } = await sb
+          .from('extra')
+          .select('amount, shop_name')
+          .eq('cust_id', custId)
+          .order('timestamp', { ascending: false })
+          .limit(20);
+        
+        if (error) {
+          console.error('Recent data error:', error);
+          return;
+        }
+        
+        if (!data || data.length === 0) {
+          console.log('No recent data found');
+          return;
+        }
+        
+        // ดึง 3 ยอดล่าสุดที่ไม่ซ้ำ
+        const seenAmounts = new Set();
+        const amounts = [];
+        for (const row of data) {
+          const amount = Number(row.amount);
+          if (amount > 0 && !seenAmounts.has(amount) && amounts.length < 3) {
+            amounts.push(amount);
+            seenAmounts.add(amount);
+          }
+        }
+        
+        // ดึง 3 ร้านค้าล่าสุดที่ไม่ซ้ำ
+        const seenShops = new Set();
+        const shops = [];
+        for (const row of data) {
+          const shop = String(row.shop_name || '').trim();
+          if (shop && !seenShops.has(shop.toLowerCase()) && shops.length < 3) {
+            shops.push(shop);
+            seenShops.add(shop.toLowerCase());
+          }
+        }
+        
+        // Update state
+        if (amounts.length > 0) recentAmounts = amounts;
+        if (shops.length > 0) recentShops = shops;
+        
+        // Render UI
+        renderQuickAmounts();
+        renderShopSuggestions();
+        
+        console.log('✅ Recent data loaded:', { amounts, shops });
+        
+      } catch (error) {
+        console.error('loadRecentData error:', error);
+      }
+    }
+    
+    /**
+     * ⭐ Render Quick Amount buttons
+     */
+    function renderQuickAmounts() {
+      const container = document.getElementById('quickBtns');
+      if (!container) return;
+      
+      container.innerHTML = recentAmounts.map(amount =>
+        `<button class="quick-btn" onclick="applyQuickAmount(${amount})">฿${amount.toLocaleString()}</button>`
+      ).join('');
+    }
+    
+    /**
+     * ⭐ Render Shop Suggestions
+     */
+    function renderShopSuggestions() {
+      const container = document.getElementById('shopSuggestions');
+      if (!container) return;
+      
+      if (recentShops.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      
+      container.innerHTML = recentShops.map(shop =>
+        `<button class="shop-btn" onclick="selectShop(this, '${shop.replace(/'/g, "\\'")}')">${shop}</button>`
+      ).join('');
     }
     
     // ============ RENDER ============
