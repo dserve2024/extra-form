@@ -178,6 +178,17 @@
       background: transparent;
     }
     
+    /* ⭐ รูปภาพบัตร */
+    .card-btn .card-bg-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 9px;
+    }
+    
     /* Amount Section */
     .amount-header {
       display: flex;
@@ -943,15 +954,25 @@
     function renderCards(cards) {
       window.displayedCards = cards;
       
+      // ⭐ Debug: ดูว่า image_url มาไหม
+      console.log('🎴 Cards data:', cards.slice(0, 3).map(c => ({ 
+        card_type: c.card_type, 
+        image_url: c.image_url 
+      })));
+      
       document.getElementById('cardGrid').innerHTML = cards.map(card => {
         const hasImage = card.image_url && card.image_url.startsWith('http');
-        const bgStyle = hasImage ? `background-image: url('${card.image_url}')` : '';
+        
+        // ⭐ ใช้ <img> tag แทน background-image (แก้ปัญหา CORS)
+        const imgHtml = hasImage 
+          ? `<img src="${card.image_url}" class="card-bg-img" onerror="this.style.display='none'">`
+          : '';
         const noImageClass = hasImage ? '' : 'no-image';
         
         return `<div class="card-btn ${noImageClass} ${selectedCards.some(c => c.card_id === card.card_id) ? 'selected' : ''}" 
               data-card-id="${card.card_id}"
-              style="${bgStyle}"
               onclick="toggleCard('${card.card_id}')">
+          ${imgHtml}
           <div class="card-overlay">
             <div class="card-name">${truncate(card.card_type, 12)}</div>
             <div class="card-last4">${card.last4}</div>
