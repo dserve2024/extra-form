@@ -660,7 +660,7 @@
     // ═══════════════════════════════════════════════════════════════
     
     // Supabase Client
-    let supabaseClient;
+    let sb;
     
     // State
     let lineProfile = null;
@@ -685,7 +685,7 @@
         }
         
         // Init Supabase
-        supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         
         setLoading('กำลังเชื่อมต่อ LINE...');
         await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -702,7 +702,7 @@
         setLoading('กำลังดึงข้อมูล...');
         
         // Query user
-        const { data: userData, error: userError } = await supabaseClient
+        const { data: userData, error: userError } = await sb
           .from('users')
           .select('*')
           .eq('line_user_id', lineProfile.userId)
@@ -716,7 +716,7 @@
         customerInfo = userData;
         
         // Query cards
-        const { data: cardsData, error: cardsError } = await supabaseClient
+        const { data: cardsData, error: cardsError } = await sb
           .from('cards')
           .select('*')
           .eq('cust_id', customerInfo.cust_id)
