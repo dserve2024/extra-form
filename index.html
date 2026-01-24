@@ -218,6 +218,247 @@
       opacity: 1;
     }
     
+    /* ⭐ ปุ่มเพิ่มบัตร */
+    .add-card-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 3px dashed rgba(255,255,255,0.4);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 60px;
+    }
+    .add-card-btn:hover {
+      background: rgba(0,208,132,0.2);
+      border-color: #00d084;
+      color: #fff;
+    }
+    .add-card-btn.span-2 { grid-column: span 2; }
+    .add-card-btn.span-3 { grid-column: span 3; }
+    
+    /* ⭐ Badge ใหม่ และปุ่มลบ */
+    .card-btn .new-badge {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      background: #00d084;
+      color: #fff;
+      font-size: 0.5rem;
+      font-weight: 700;
+      padding: 2px 4px;
+      border-radius: 4px;
+      z-index: 15;
+    }
+    .card-btn .delete-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 20px;
+      height: 20px;
+      background: rgba(255,0,0,0.8);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      cursor: pointer;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-btn .delete-btn:hover { background: #ff0000; }
+    
+    /* ⭐ Modal เพิ่มบัตร */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-overlay.hidden { display: none; }
+    
+    .modal-box {
+      background: linear-gradient(135deg, #4a4a6a 0%, #3a3a5c 100%);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 360px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+    
+    .modal-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      text-align: center;
+    }
+    
+    .modal-body { padding: 12px; }
+    
+    .modal-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 6px;
+    }
+    
+    .modal-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .modal-select {
+      flex: 1;
+      padding: 8px 10px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 0.8rem;
+      font-family: 'Prompt', sans-serif;
+    }
+    .modal-select option { background: #3a3a5c; color: #fff; }
+    
+    .modal-input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 0.85rem;
+      font-family: 'Prompt', sans-serif;
+    }
+    .modal-input::placeholder { color: rgba(255,255,255,0.4); }
+    .modal-input:focus { outline: none; border-color: #00d084; }
+    
+    .modal-input-sm { width: 80px; flex: none; text-align: center; letter-spacing: 2px; }
+    
+    /* Modal Card Type Grid */
+    .modal-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    
+    .modal-card-btn {
+      position: relative;
+      aspect-ratio: 1.586;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .modal-card-btn.no-image {
+      background: linear-gradient(135deg, #3a3a5c 0%, #2a2a4c 100%);
+    }
+    .modal-card-btn:hover { border-color: rgba(255,255,255,0.5); }
+    .modal-card-btn.selected { border-color: #00d084; box-shadow: 0 0 0 2px rgba(0,208,132,0.5); }
+    .modal-card-btn.disabled { opacity: 0.3; pointer-events: none; }
+    
+    .modal-card-btn .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+    .modal-card-btn .card-name {
+      font-size: 0.55rem;
+      color: #fff;
+      font-weight: 600;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+    .modal-card-btn .check-mark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      color: #00d084;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      display: none;
+    }
+    .modal-card-btn.selected .check-mark { display: block; }
+    .modal-card-btn.selected .card-overlay { background: rgba(0,208,132,0.5); }
+    
+    /* Modal Suggest Buttons */
+    .modal-suggest {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .modal-suggest-btn {
+      padding: 4px 8px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.65rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-suggest-btn:hover { background: rgba(0,208,132,0.3); border-color: #00d084; }
+    
+    /* Modal Footer */
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      padding: 12px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+    }
+    .modal-btn-cancel {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.8);
+    }
+    .modal-btn-confirm {
+      background: #00d084;
+      color: #fff;
+    }
+    .modal-btn-confirm:disabled {
+      background: rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.4);
+      cursor: not-allowed;
+    }
+    
     /* Amount Section */
     .amount-header {
       display: flex;
@@ -718,6 +959,39 @@
       <div id="loadingText">กำลังโหลด...</div>
     </div>
   </div>
+  
+  <!-- ⭐ Modal เพิ่มบัตร -->
+  <div id="addCardModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">➕ เพิ่มบัตรใหม่</div>
+      <div class="modal-body">
+        <!-- Bank Selector (ถ้าเลือกหลาย bank) -->
+        <div id="modalBankRow" class="modal-row hidden">
+          <span class="modal-label" style="margin:0;white-space:nowrap;">ธนาคาร:</span>
+          <select id="modalBankSelect" class="modal-select" onchange="onModalBankChange()"></select>
+        </div>
+        
+        <!-- Card Types Grid -->
+        <div class="modal-label">เลือกประเภทบัตร:</div>
+        <div id="modalCardGrid" class="modal-card-grid"></div>
+        
+        <!-- Last4 + Name Row -->
+        <div class="modal-row">
+          <span class="modal-label" style="margin:0;white-space:nowrap;">4 ตัวท้าย:</span>
+          <input type="tel" id="modalLast4" class="modal-input modal-input-sm" maxlength="4" placeholder="0000" oninput="validateModalForm()">
+          <span class="modal-label" style="margin:0;white-space:nowrap;">ชื่อ:</span>
+          <input type="text" id="modalName" class="modal-input" placeholder="ชื่อบนบัตร" oninput="validateModalForm()">
+        </div>
+        
+        <!-- Name Suggestions -->
+        <div id="modalNameSuggest" class="modal-suggest"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="closeAddCardModal()">ยกเลิก</button>
+        <button id="modalConfirmBtn" class="modal-btn modal-btn-confirm" onclick="confirmAddCard()" disabled>เพิ่มบัตร</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // ═══════════════════════════════════════════════════════════════
@@ -753,6 +1027,7 @@
     let selectedCards = [];
     let recentAmounts = [5000, 10000, 15000]; // ⭐ Default values
     let recentShops = []; // ⭐ ร้านค้าล่าสุด
+    let cardTypes = []; // ⭐ ประเภทบัตรทั้งหมด (สำหรับ Modal เพิ่มบัตร)
     
     // ============ INIT ============
     async function init() {
@@ -815,6 +1090,13 @@
         allCards = (cardsData || []).filter(card => 
           CONFIG.ALLOWED_BANKS.includes(card.bank)
         );
+        
+        // ⭐ ดึง cardTypes สำหรับ Modal เพิ่มบัตร
+        const { data: typesData } = await sb
+          .from('card_types')
+          .select('*')
+          .in('bank', CONFIG.ALLOWED_BANKS);
+        cardTypes = typesData || [];
         
         // ⭐ ดึง Recent Data (ยอดและร้านค้าล่าสุด) แบบ Background
         loadRecentData(customerInfo.cust_id);
@@ -989,19 +1271,26 @@
         image_url: c.image_url 
       })));
       
-      document.getElementById('cardGrid').innerHTML = cards.map(card => {
+      // สร้าง HTML สำหรับบัตรทั้งหมด
+      let html = cards.map(card => {
         const hasImage = card.image_url && card.image_url.startsWith('http');
-        
-        // ⭐ ใช้ <img> tag แทน background-image (แก้ปัญหา CORS)
         const imgHtml = hasImage 
           ? `<img src="${card.image_url}" class="card-bg-img" onerror="this.style.display='none'">`
           : '';
         const noImageClass = hasImage ? '' : 'no-image';
+        const isSelected = selectedCards.some(c => c.card_id === card.card_id);
+        const isNew = card.isNew;
         
-        return `<div class="card-btn ${noImageClass} ${selectedCards.some(c => c.card_id === card.card_id) ? 'selected' : ''}" 
+        // ⭐ Badge และปุ่มลบสำหรับบัตรใหม่
+        const newBadge = isNew ? `<span class="new-badge">🆕</span>` : '';
+        const deleteBtn = isNew ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteNewCard('${card.card_id}')">✕</button>` : '';
+        
+        return `<div class="card-btn ${noImageClass} ${isSelected ? 'selected' : ''}" 
               data-card-id="${card.card_id}"
               onclick="toggleCard('${card.card_id}')">
           ${imgHtml}
+          ${newBadge}
+          ${deleteBtn}
           <div class="card-overlay">
             <div class="card-name">${truncate(card.card_type, 12)}</div>
             <div class="card-last4">${card.last4}</div>
@@ -1010,6 +1299,19 @@
         </div>`;
       }).join('');
       
+      // ⭐ เพิ่มปุ่ม "เพิ่มบัตร" ต่อท้าย
+      const remainder = cards.length % 3;
+      let spanClass = '';
+      if (remainder === 0) spanClass = 'span-3';      // ยาวเต็ม 3 ช่อง
+      else if (remainder === 1) spanClass = 'span-2'; // ยาว 2 ช่อง
+      // remainder === 2 → ไม่ต้อง span (1 ช่อง)
+      
+      html += `<div class="add-card-btn ${spanClass}" onclick="openAddCardModal()">
+        <span>➕</span>
+        <span>เพิ่มบัตร</span>
+      </div>`;
+      
+      document.getElementById('cardGrid').innerHTML = html;
       document.getElementById('cardSection').classList.remove('hidden');
     }
     
@@ -1278,11 +1580,201 @@
     }
     
     function closeLiff() {
-      if (liff.isInClient()) {
-        liff.closeWindow();
-      } else {
-        window.close();
+      try {
+        if (typeof liff !== 'undefined' && liff.isInClient()) {
+          liff.closeWindow();
+        } else {
+          // Fallback: ลองปิดหลายวิธี
+          window.close();
+          // ถ้าปิดไม่ได้ ให้ redirect กลับ LINE
+          setTimeout(() => {
+            window.location.href = 'https://line.me/R/';
+          }, 500);
+        }
+      } catch (e) {
+        console.error('Close error:', e);
+        // Fallback
+        window.location.href = 'https://line.me/R/';
       }
+    }
+    
+    // ============ ADD CARD MODAL ============
+    let modalSelectedType = null;
+    
+    function openAddCardModal() {
+      modalSelectedType = null;
+      document.getElementById('modalLast4').value = '';
+      document.getElementById('modalName').value = customerInfo.name_on_card || customerInfo.full_name || '';
+      
+      // ถ้าเลือกหลาย bank → แสดง dropdown
+      if (selectedBanks.length > 1) {
+        document.getElementById('modalBankRow').classList.remove('hidden');
+        const select = document.getElementById('modalBankSelect');
+        select.innerHTML = selectedBanks.map(b => `<option value="${b}">${b}</option>`).join('');
+        renderModalCardTypes(selectedBanks[0]);
+      } else if (selectedBanks.length === 1) {
+        document.getElementById('modalBankRow').classList.add('hidden');
+        renderModalCardTypes(selectedBanks[0]);
+      } else {
+        // ไม่มี selectedBanks (บัตรน้อยกว่า threshold)
+        const banksFromCards = [...new Set(allCards.map(c => c.bank).filter(Boolean))];
+        if (banksFromCards.length > 1) {
+          document.getElementById('modalBankRow').classList.remove('hidden');
+          const select = document.getElementById('modalBankSelect');
+          select.innerHTML = banksFromCards.map(b => `<option value="${b}">${b}</option>`).join('');
+          renderModalCardTypes(banksFromCards[0]);
+        } else if (banksFromCards.length === 1) {
+          document.getElementById('modalBankRow').classList.add('hidden');
+          renderModalCardTypes(banksFromCards[0]);
+        }
+      }
+      
+      // Render name suggestions
+      renderNameSuggestions();
+      
+      validateModalForm();
+      document.getElementById('addCardModal').classList.remove('hidden');
+    }
+    
+    function closeAddCardModal() {
+      document.getElementById('addCardModal').classList.add('hidden');
+    }
+    
+    function onModalBankChange() {
+      const bank = document.getElementById('modalBankSelect').value;
+      modalSelectedType = null;
+      renderModalCardTypes(bank);
+      validateModalForm();
+    }
+    
+    function renderModalCardTypes(bank) {
+      const types = cardTypes.filter(t => t.bank === bank);
+      
+      document.getElementById('modalCardGrid').innerHTML = types.map(t => {
+        const hasImage = t.image_url && t.image_url.startsWith('http');
+        const imgStyle = hasImage ? `background-image: url('${t.image_url}')` : '';
+        const noImageClass = hasImage ? '' : 'no-image';
+        const isSelected = modalSelectedType === t.card_name;
+        const isDisabled = modalSelectedType && !isSelected;
+        
+        return `<div class="modal-card-btn ${noImageClass} ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}"
+              style="${imgStyle}"
+              onclick="selectModalCardType('${t.card_name.replace(/'/g, "\\'")}')">
+          <div class="card-overlay">
+            <div class="card-name">${t.card_name}</div>
+          </div>
+          <span class="check-mark">✓</span>
+        </div>`;
+      }).join('');
+    }
+    
+    function selectModalCardType(cardName) {
+      if (modalSelectedType === cardName) {
+        modalSelectedType = null; // Deselect
+      } else {
+        modalSelectedType = cardName;
+      }
+      
+      // Re-render with updated selection
+      const bank = document.getElementById('modalBankSelect')?.value || 
+                   (selectedBanks.length === 1 ? selectedBanks[0] : 
+                   [...new Set(allCards.map(c => c.bank))][0]);
+      renderModalCardTypes(bank);
+      validateModalForm();
+    }
+    
+    function renderNameSuggestions() {
+      // ดึงชื่อไม่ซ้ำจากบัตรที่มี
+      const names = [...new Set(allCards.map(c => c.full_name).filter(Boolean))].slice(0, 3);
+      
+      document.getElementById('modalNameSuggest').innerHTML = names.map(name =>
+        `<button class="modal-suggest-btn" onclick="selectNameSuggestion('${name.replace(/'/g, "\\'")}')">${name}</button>`
+      ).join('');
+    }
+    
+    function selectNameSuggestion(name) {
+      document.getElementById('modalName').value = name;
+      validateModalForm();
+    }
+    
+    function validateModalForm() {
+      const last4 = document.getElementById('modalLast4').value.trim();
+      const name = document.getElementById('modalName').value.trim();
+      const isValid = modalSelectedType && last4.length === 4 && name.length > 0;
+      document.getElementById('modalConfirmBtn').disabled = !isValid;
+    }
+    
+    function confirmAddCard() {
+      const last4 = document.getElementById('modalLast4').value.trim();
+      const name = document.getElementById('modalName').value.trim();
+      
+      if (!modalSelectedType || last4.length !== 4 || !name) {
+        alert('กรุณากรอกข้อมูลให้ครบ');
+        return;
+      }
+      
+      // ⭐ ตรวจสอบบัตรซ้ำ
+      const duplicate = allCards.find(c => 
+        c.card_type === modalSelectedType && c.last4 === last4
+      );
+      
+      if (duplicate) {
+        if (confirm(`บัตร ${modalSelectedType} ${last4} มีอยู่แล้ว\nต้องการเลือกบัตรนี้แทนไหม?`)) {
+          // เลือกบัตรที่มีอยู่
+          if (!selectedCards.some(c => c.card_id === duplicate.card_id)) {
+            selectedCards.push({ ...duplicate, amount: '' });
+          }
+          closeAddCardModal();
+          refreshCardGrid();
+          updateAmountSection();
+        }
+        return;
+      }
+      
+      // สร้างบัตรใหม่
+      const typeInfo = cardTypes.find(t => t.card_name === modalSelectedType) || {};
+      const newCard = {
+        card_id: 'NEW_' + Date.now(),
+        card_type: modalSelectedType,
+        last4: last4,
+        full_name: name,
+        bank: typeInfo.bank || '',
+        type_code: typeInfo.type_code || '',
+        image_url: typeInfo.image_url || '',
+        isNew: true
+      };
+      
+      // เพิ่มเข้า displayedCards และ selectedCards
+      window.displayedCards.push(newCard);
+      selectedCards.push({ ...newCard, amount: '' });
+      
+      closeAddCardModal();
+      refreshCardGrid();
+      updateAmountSection();
+    }
+    
+    function deleteNewCard(cardId) {
+      // ลบจาก displayedCards
+      const idx = window.displayedCards.findIndex(c => c.card_id === cardId);
+      if (idx > -1) window.displayedCards.splice(idx, 1);
+      
+      // ลบจาก selectedCards
+      const selIdx = selectedCards.findIndex(c => c.card_id === cardId);
+      if (selIdx > -1) selectedCards.splice(selIdx, 1);
+      
+      refreshCardGrid();
+      updateAmountSection();
+    }
+    
+    function refreshCardGrid() {
+      renderCards(window.displayedCards);
+      // Re-apply selection state
+      document.querySelectorAll('.card-btn').forEach(btn => {
+        const id = btn.dataset.cardId;
+        if (id) {
+          btn.classList.toggle('selected', selectedCards.some(c => c.card_id === id));
+        }
+      });
     }
     
     // ============ HELPERS ============
