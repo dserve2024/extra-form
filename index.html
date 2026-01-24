@@ -322,6 +322,17 @@
       gap: 8px;
       align-items: center;
       margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    
+    /* ⭐ บนจอเล็ก ให้ input ขึ้นบรรทัดใหม่ */
+    @media (max-width: 360px) {
+      .modal-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .modal-row .modal-label { margin-bottom: 4px; }
+      .modal-input-sm { width: 100%; }
     }
     
     .modal-select {
@@ -422,11 +433,23 @@
       border-radius: 6px;
       background: rgba(255,255,255,0.1);
       color: rgba(255,255,255,0.8);
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       cursor: pointer;
       transition: all 0.2s;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 0 1 auto;
     }
     .modal-suggest-btn:hover { background: rgba(0,208,132,0.3); border-color: #00d084; }
+    
+    /* ⭐ ถ้าชื่อยาว ให้ย่อ */
+    @media (max-width: 400px) {
+      .modal-suggest-btn {
+        max-width: 45%;
+      }
+    }
     
     /* Modal Footer */
     .modal-footer {
@@ -1687,9 +1710,11 @@
       // ดึงชื่อไม่ซ้ำจากบัตรที่มี
       const names = [...new Set(allCards.map(c => c.full_name).filter(Boolean))].slice(0, 3);
       
-      document.getElementById('modalNameSuggest').innerHTML = names.map(name =>
-        `<button class="modal-suggest-btn" onclick="selectNameSuggestion('${name.replace(/'/g, "\\'")}')">${name}</button>`
-      ).join('');
+      document.getElementById('modalNameSuggest').innerHTML = names.map(name => {
+        // ⭐ ตัดชื่อที่ยาวเกิน 15 ตัวอักษร
+        const displayName = name.length > 15 ? name.substring(0, 15) + '..' : name;
+        return `<button class="modal-suggest-btn" onclick="selectNameSuggestion('${name.replace(/'/g, "\\'")}')" title="${name}">${displayName}</button>`;
+      }).join('');
     }
     
     function selectNameSuggestion(name) {
@@ -1779,14 +1804,29 @@
     
     // ============ HELPERS ============
     function formatAmount(input) {
-      let value = input.value.replace(/[^0-9]/g, '');
-      if (value) value = parseInt(value).toLocaleString();
+      // ⭐ รองรับทศนิยม
+      let value = input.value.replace(/[^0-9.]/g, '');
+      
+      // ป้องกัน . หลายตัว
+      const parts = value.split('.');
+      if (parts.length > 2) {
+        value = parts[0] + '.' + parts.slice(1).join('');
+      }
+      
+      // Format เฉพาะส่วนจำนวนเต็ม
+      if (value) {
+        const [intPart, decPart] = value.split('.');
+        const formattedInt = intPart ? parseInt(intPart).toLocaleString() : '0';
+        value = decPart !== undefined ? formattedInt + '.' + decPart : formattedInt;
+      }
+      
       input.value = value;
     }
     
     function parseNumber(str) {
       if (!str) return 0;
-      return parseInt(String(str).replace(/[^0-9]/g, '')) || 0;
+      // ⭐ รองรับทศนิยม
+      return parseFloat(String(str).replace(/[^0-9.]/g, '')) || 0;
     }
     
     function formatDateThai(dateStr) {
