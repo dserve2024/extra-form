@@ -1303,16 +1303,23 @@
         const noImageClass = hasImage ? '' : 'no-image';
         const isSelected = selectedCards.some(c => c.card_id === card.card_id);
         const isNew = card.isNew;
+        const isExisting = card.isExisting; // ⭐ บัตรที่มีอยู่แล้ว (available = false)
         
-        // ⭐ Badge และปุ่มลบสำหรับบัตรใหม่
-        const newBadge = isNew ? `<span class="new-badge">🆕</span>` : '';
-        const deleteBtn = isNew ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteNewCard('${card.card_id}')">✕</button>` : '';
+        // ⭐ Badge และปุ่มลบ
+        let badgeHtml = '';
+        let deleteBtn = '';
+        if (isNew) {
+          badgeHtml = `<span class="new-badge">🆕</span>`;
+          deleteBtn = `<button class="delete-btn" onclick="event.stopPropagation(); deleteNewCard('${card.card_id}')">✕</button>`;
+        } else if (isExisting) {
+          badgeHtml = `<span class="new-badge" style="background:#f59e0b;">📌</span>`;
+        }
         
         return `<div class="card-btn ${noImageClass} ${isSelected ? 'selected' : ''}" 
               data-card-id="${card.card_id}"
               onclick="toggleCard('${card.card_id}')">
           ${imgHtml}
-          ${newBadge}
+          ${badgeHtml}
           ${deleteBtn}
           <div class="card-overlay">
             <div class="card-name">${truncate(card.card_type, 12)}</div>
@@ -1732,7 +1739,7 @@
       document.getElementById('modalConfirmBtn').disabled = !isValid;
     }
     
-    function confirmAddCard() {
+    async function confirmAddCard() {
       const last4 = document.getElementById('modalLast4').value.trim();
       const name = document.getElementById('modalName').value.trim();
       
@@ -1741,16 +1748,15 @@
         return;
       }
       
-      // ⭐ ตรวจสอบบัตรซ้ำ
-      const duplicate = allCards.find(c => 
+      // ⭐ 1. เช็คใน allCards ก่อน (บัตรที่แสดงอยู่ available = true)
+      const duplicateInUI = allCards.find(c => 
         c.card_type === modalSelectedType && c.last4 === last4
       );
       
-      if (duplicate) {
+      if (duplicateInUI) {
         if (confirm(`บัตร ${modalSelectedType} ${last4} มีอยู่แล้ว\nต้องการเลือกบัตรนี้แทนไหม?`)) {
-          // เลือกบัตรที่มีอยู่
-          if (!selectedCards.some(c => c.card_id === duplicate.card_id)) {
-            selectedCards.push({ ...duplicate, amount: '' });
+          if (!selectedCards.some(c => c.card_id === duplicateInUI.card_id)) {
+            selectedCards.push({ ...duplicateInUI, amount: '' });
           }
           closeAddCardModal();
           refreshCardGrid();
@@ -1759,7 +1765,46 @@
         return;
       }
       
-      // สร้างบัตรใหม่
+      // ⭐ 2. Query Supabase เช็คบัตรซ้ำ (รวม available = false)
+      try {
+        const { data: existingCard, error } = await sb
+          .from('cards')
+          .select('*')
+          .eq('cust_id', customerInfo.cust_id)
+          .eq('card_type', modalSelectedType)
+          .eq('last4', last4)
+          .maybeSingle();
+        
+        if (existingCard) {
+          // ⭐ เจอบัตรเดิมในระบบ → ใช้ card_id เดิม ไม่สร้างใหม่
+          console.log('🔍 พบบัตรเดิมในระบบ:', existingCard);
+          
+          const card = {
+            ...existingCard,
+            full_name: name,  // ใช้ชื่อที่กรอกใหม่
+            isExisting: true  // flag ว่าเป็นบัตรที่มีอยู่แล้ว
+          };
+          
+          // เพิ่มเข้า displayedCards (ถ้ายังไม่มี)
+          if (!window.displayedCards.some(c => c.card_id === card.card_id)) {
+            window.displayedCards.push(card);
+          }
+          
+          // เพิ่มเข้า selectedCards
+          if (!selectedCards.some(c => c.card_id === card.card_id)) {
+            selectedCards.push({ ...card, amount: '' });
+          }
+          
+          closeAddCardModal();
+          refreshCardGrid();
+          updateAmountSection();
+          return;
+        }
+      } catch (e) {
+        console.error('Error checking existing card:', e);
+      }
+      
+      // ⭐ 3. ไม่เจอบัตรเดิม → สร้างบัตรใหม่
       const typeInfo = cardTypes.find(t => t.card_name === modalSelectedType) || {};
       const newCard = {
         card_id: 'NEW_' + Date.now(),
