@@ -1639,27 +1639,29 @@
       document.getElementById('modalLast4').value = '';
       document.getElementById('modalName').value = customerInfo.name_on_card || customerInfo.full_name || '';
       
-      // ถ้าเลือกหลาย bank → แสดง dropdown
-      if (selectedBanks.length > 1) {
+      // ⭐ หา banks ที่จะแสดงใน dropdown
+      let banksToShow = [];
+      
+      if (selectedBanks.length > 0) {
+        // มี selectedBanks จากหน้าเลือกธนาคาร
+        banksToShow = selectedBanks;
+      } else if (allCards.length > 0) {
+        // ไม่มี selectedBanks แต่มีบัตร → ดึง bank จากบัตร
+        banksToShow = [...new Set(allCards.map(c => c.bank).filter(Boolean))];
+      } else {
+        // ⭐ ลูกค้าใหม่ไม่มีบัตรเลย → ใช้ ALLOWED_BANKS ทั้งหมด
+        banksToShow = CONFIG.ALLOWED_BANKS;
+      }
+      
+      // แสดง dropdown ถ้ามีมากกว่า 1 bank หรือเป็นลูกค้าใหม่
+      if (banksToShow.length > 1 || allCards.length === 0) {
         document.getElementById('modalBankRow').classList.remove('hidden');
         const select = document.getElementById('modalBankSelect');
-        select.innerHTML = selectedBanks.map(b => `<option value="${b}">${b}</option>`).join('');
-        renderModalCardTypes(selectedBanks[0]);
-      } else if (selectedBanks.length === 1) {
+        select.innerHTML = banksToShow.map(b => `<option value="${b}">${b}</option>`).join('');
+        renderModalCardTypes(banksToShow[0]);
+      } else if (banksToShow.length === 1) {
         document.getElementById('modalBankRow').classList.add('hidden');
-        renderModalCardTypes(selectedBanks[0]);
-      } else {
-        // ไม่มี selectedBanks (บัตรน้อยกว่า threshold)
-        const banksFromCards = [...new Set(allCards.map(c => c.bank).filter(Boolean))];
-        if (banksFromCards.length > 1) {
-          document.getElementById('modalBankRow').classList.remove('hidden');
-          const select = document.getElementById('modalBankSelect');
-          select.innerHTML = banksFromCards.map(b => `<option value="${b}">${b}</option>`).join('');
-          renderModalCardTypes(banksFromCards[0]);
-        } else if (banksFromCards.length === 1) {
-          document.getElementById('modalBankRow').classList.add('hidden');
-          renderModalCardTypes(banksFromCards[0]);
-        }
+        renderModalCardTypes(banksToShow[0]);
       }
       
       // Render name suggestions
