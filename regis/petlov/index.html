@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>D-SERVE | PETLOV 0% 3M</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 10px 12px 20px;
+    }
+
+    .container { max-width: 400px; margin: 0 auto; }
+    .hidden { display: none !important; }
+
+    /* Loading */
+    #loadingOverlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 9999; color: #fff;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loadingText { font-size: 0.85rem; opacity: 0.9; }
+
+    /* Error */
+    #errorScreen {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 9998; color: #fff; text-align: center; padding: 20px;
+    }
+    #errorScreen .icon { font-size: 3rem; margin-bottom: 12px; }
+    #errorScreen .msg { font-size: 0.9rem; opacity: 0.9; line-height: 1.5; }
+
+    /* Header */
+    .header {
+      text-align: center; padding: 4px 0 8px; color: #fff;
+    }
+    .header h1 { font-size: 0.9rem; font-weight: 600; }
+    .header .sub { font-size: 0.65rem; opacity: 0.7; }
+
+    /* Promo Banner */
+    .promo-banner {
+      background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,165,0,0.15) 100%);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .promo-banner .promo-name {
+      font-size: 0.8rem; font-weight: 700; color: #FFD700;
+      letter-spacing: 0.5px;
+    }
+    .promo-banner .promo-detail {
+      font-size: 0.55rem; color: rgba(255,255,255,0.6); margin-top: 2px;
+    }
+
+    /* Profile Bar */
+    .profile-bar {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .profile-bar img {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.3); object-fit: cover;
+    }
+    .profile-bar .info { flex: 1; min-width: 0; }
+    .profile-bar .name { font-size: 0.7rem; color: #fff; font-weight: 500; }
+    .profile-bar .cust { font-size: 0.6rem; color: rgba(255,255,255,0.6); }
+
+    /* Section Header */
+    .section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 6px; margin-bottom: 4px;
+    }
+    .section-label {
+      font-size: 0.65rem; color: rgba(255,255,255,0.7);
+      font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .selected-count {
+      font-size: 0.6rem; color: #4ecdc4;
+      background: rgba(78,205,196,0.15);
+      border: 1px solid rgba(78,205,196,0.3);
+      border-radius: 6px; padding: 2px 8px;
+    }
+
+    /* Card Grid (5 per row) */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      padding: 6px 0;
+    }
+    .card-btn {
+      position: relative;
+      aspect-ratio: 1.586;
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 7px;
+      background-color: rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: all 0.2s;
+      overflow: hidden;
+    }
+    .card-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .card-btn.selected {
+      border-color: #00d084;
+      box-shadow: 0 0 0 1px #00d084, 0 4px 14px rgba(0,208,132,0.35);
+      transform: translateY(-3px);
+    }
+    .card-btn.unavail { opacity: 0.45; filter: grayscale(0.5); }
+    .card-btn.unavail.selected { opacity: 1; filter: none; }
+
+    .card-btn .card-bg-img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; border-radius: 5px;
+    }
+    .card-btn .card-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: flex-end; align-items: flex-start;
+      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%);
+      padding: 3px 4px;
+    }
+    .card-btn .card-name {
+      font-size: 0.35rem; color: rgba(255,255,255,0.9); font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 100%; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      line-height: 1.2;
+    }
+    .card-btn .card-last4 {
+      font-size: 0.5rem; color: #fff; font-weight: 700;
+      letter-spacing: 0.5px; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      line-height: 1.3;
+    }
+    .card-btn .card-owner {
+      font-size: 0.3rem; color: rgba(255,255,255,0.7);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 100%; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      line-height: 1.1;
+    }
+    .card-btn.no-image { background: linear-gradient(135deg, #3a3a5c 0%, #2a2a4c 100%); }
+    .card-btn.no-image .card-overlay { background: transparent; justify-content: center; align-items: center; }
+
+    .card-btn .check-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0, 208, 132, 0.75);
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; transition: opacity 0.2s; border-radius: 5px; z-index: 10;
+    }
+    .card-btn .check-overlay::after {
+      content: '\2713'; font-size: 1rem; color: #fff;
+      font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .card-btn.selected .check-overlay { opacity: 1; }
+
+    .no-cards-msg {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: rgba(255,255,255,0.5); font-size: 0.8rem; padding: 20px;
+    }
+
+    /* Unavail Toggle */
+    .unavail-toggle {
+      font-size: 0.6rem; color: rgba(255,255,255,0.5);
+      background: none; border: none; cursor: pointer;
+      padding: 2px 0; font-family: 'Prompt', sans-serif;
+    }
+    .unavail-toggle:hover { color: rgba(255,255,255,0.8); }
+
+    /* Selected Cards Summary */
+    .selected-section {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      margin-top: 8px;
+    }
+    .selected-section .section-title {
+      font-size: 0.7rem; color: rgba(255,255,255,0.7);
+      font-weight: 500; margin-bottom: 8px;
+    }
+    .selected-card-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .selected-card-row:last-child { border-bottom: none; }
+    .selected-card-info { flex: 1; min-width: 0; }
+    .selected-card-info .type-line {
+      font-size: 0.65rem; color: #fff; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .selected-card-info .name-line {
+      font-size: 0.55rem; color: rgba(255,255,255,0.5);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .amount-wrapper {
+      display: flex; align-items: center; gap: 4px;
+      flex-shrink: 0;
+    }
+    .amount-wrapper .baht { font-size: 0.6rem; color: rgba(255,255,255,0.5); }
+    .amount-input {
+      width: 80px; padding: 5px 6px;
+      border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08); color: #fff;
+      font-family: 'Prompt', sans-serif; font-size: 0.75rem;
+      text-align: right; outline: none;
+    }
+    .amount-input:focus { border-color: #4ecdc4; }
+    .remove-btn {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(255,100,100,0.3); border: none;
+      color: #ff6b6b; font-size: 0.7rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .remove-btn:hover { background: rgba(255,100,100,0.5); }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%; padding: 12px;
+      border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #4ecdc4 0%, #44b3ab 100%);
+      color: #fff; font-family: 'Prompt', sans-serif;
+      font-weight: 600; font-size: 0.85rem;
+      cursor: pointer; margin-top: 10px; transition: opacity 0.2s;
+    }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .submit-btn:active:not(:disabled) { opacity: 0.8; }
+
+    /* Success */
+    #successScreen {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 9997; color: #fff; text-align: center; padding: 20px;
+    }
+    #successScreen .icon { font-size: 3.5rem; margin-bottom: 12px; }
+    #successScreen h2 { font-size: 1.1rem; margin-bottom: 8px; }
+    #successScreen .detail {
+      font-size: 0.75rem; opacity: 0.8; line-height: 1.6;
+      text-align: left; white-space: pre-line;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 12px; max-width: 320px;
+    }
+    #successScreen .close-btn {
+      margin-top: 20px; padding: 10px 30px;
+      background: rgba(255,255,255,0.2); color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 10px; font-family: 'Prompt', sans-serif;
+      font-size: 0.85rem; cursor: pointer;
+    }
+
+    /* Processing Overlay */
+    #processingOverlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 9999; color: #fff;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      padding: 10px 20px; border-radius: 10px;
+      font-size: 0.8rem; font-family: 'Prompt', sans-serif;
+      z-index: 10000; animation: fadeIn 0.3s;
+      max-width: 90%;
+    }
+    .toast.warning { background: #f59e0b; color: #fff; }
+    .toast.error { background: #ef4444; color: #fff; }
+    .toast.success { background: #10b981; color: #fff; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <div id="loadingText">Loading...</div>
+</div>
+
+<!-- Error -->
+<div id="errorScreen" class="hidden">
+  <div class="icon">:(</div>
+  <div class="msg" id="errorMsg"></div>
+</div>
+
+<!-- Main -->
+<div id="mainContent" class="hidden">
+  <div class="container">
+
+    <div class="header">
+      <h1>PETLOV 0% 3 MONTHS</h1>
+      <div class="sub">D-SERVE Promo Registration</div>
+    </div>
+
+    <!-- Promo Banner -->
+    <div class="promo-banner">
+      <div class="promo-name">[FEB26]PETLOV0%3M</div>
+      <div class="promo-detail">UCHOOSE | LS5 + INS + ETAX</div>
+    </div>
+
+    <!-- Profile -->
+    <div class="profile-bar">
+      <img id="profileImg" src="" alt="">
+      <div class="info">
+        <div class="name" id="profileName">-</div>
+        <div class="cust" id="profileCust">-</div>
+      </div>
+    </div>
+
+    <!-- Card Selection -->
+    <div class="section-header">
+      <div class="section-label">KFV / KCC / THE1 / LOTUS</div>
+      <div class="selected-count" id="selectedCount">0 selected</div>
+    </div>
+    <div id="cardGrid" class="card-grid"></div>
+    <div id="unavailSection" class="hidden">
+      <button class="unavail-toggle" id="unavailToggleBtn" onclick="toggleUnavail()">&#9654; Not with team (<span id="unavailCount">0</span>)</button>
+      <div id="unavailGrid" class="card-grid hidden"></div>
+    </div>
+
+    <!-- Selected Cards Summary -->
+    <div id="selectedSection" class="selected-section hidden">
+      <div class="section-title" id="selectedTitle">Selected cards</div>
+      <div id="selectedList"></div>
+      <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+        Submit
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Success -->
+<div id="successScreen" class="hidden">
+  <div class="icon">&#10004;</div>
+  <h2>Registration successful!</h2>
+  <div class="detail" id="successDetail"></div>
+  <button class="close-btn" onclick="closeLiff()">Close</button>
+</div>
+
+<!-- Processing -->
+<div id="processingOverlay" class="hidden">
+  <div class="spinner"></div>
+  <div style="font-size:0.85rem; margin-top:8px; color:#fff;">Submitting...</div>
+</div>
+
+<script>
+// CONFIG
+var CONFIG = {
+  LIFF_ID: '2007885305-mjvPWNzk',
+  SUPABASE_URL: 'https://momguihyvsjuexpficdf.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vbWd1aWh5dnNqdWV4cGZpY2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxODQ0ODUsImV4cCI6MjA4NDc2MDQ4NX0.nkdyabWT39acE9ib_BEsTXcKsDpal_myX9PbLvHUnlk',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyghkPL3lSsZpm_DKZz78f2MseanH8HUQ92CfaVb6r3MvCs1TgUcXhdm9sX-JiI7t_Z/exec',
+  ELIGIBLE_BANKS: ['KFV', 'KCC', 'THE1', 'LOTUS'],
+  PROMOTION: '[FEB26]PETLOV0%3M',
+  DEFAULT_AMOUNT: 80000
+};
+
+// STATE
+var sb;
+var lineProfile = null;
+var customerInfo = null;
+var allCards = [];
+var cardTypesMap = {};
+var selectedCards = {};  // cardId -> card object
+
+// HELPERS
+function truncate(str, max) {
+  if (!str) return '';
+  return str.length > max ? str.substring(0, max) + '..' : str;
+}
+
+function setLoading(text) {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+function showError(msg) {
+  hideLoading();
+  document.getElementById('errorMsg').textContent = msg;
+  document.getElementById('errorScreen').classList.remove('hidden');
+}
+
+function showToast(msg, type) {
+  type = type || 'warning';
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3000);
+}
+
+function formatNumber(num) {
+  return Number(num).toLocaleString();
+}
+
+function parseAmount(str) {
+  return parseInt(String(str).replace(/[^0-9]/g, ''), 10) || 0;
+}
+
+// INIT
+async function init() {
+  try {
+    setLoading('Connecting to LINE...');
+
+    sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+    await liff.init({ liffId: CONFIG.LIFF_ID });
+
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    lineProfile = await liff.getProfile();
+
+    setLoading('Loading cards...');
+
+    var userResult = await sb.from('users').select('*')
+      .eq('line_user_id', lineProfile.userId).single();
+
+    if (userResult.error || !userResult.data) {
+      showError('Customer not found. Please contact Admin.');
+      return;
+    }
+    customerInfo = userResult.data;
+
+    var [cardsResult, typesResult] = await Promise.all([
+      sb.from('cards').select('*').eq('cust_id', customerInfo.cust_id),
+      sb.from('card_types').select('*')
+    ]);
+
+    var allTypes = typesResult.data || [];
+    allTypes.forEach(function(t) {
+      cardTypesMap[t.card_name] = { type_code: t.type_code, image_url: t.image_url, bank: t.bank };
+    });
+
+    var rawCards = cardsResult.data || [];
+    allCards = rawCards.filter(function(card) {
+      var typeInfo = cardTypesMap[card.card_type];
+      return typeInfo && CONFIG.ELIGIBLE_BANKS.indexOf(typeInfo.bank) !== -1;
+    });
+
+    renderProfile();
+    renderCards();
+
+    hideLoading();
+    document.getElementById('mainContent').classList.remove('hidden');
+
+  } catch (error) {
+    console.error('Init error:', error);
+    showError('Error: ' + error.message);
+  }
+}
+
+// RENDER
+function renderProfile() {
+  document.getElementById('profileImg').src = lineProfile.pictureUrl || '';
+  document.getElementById('profileName').textContent = lineProfile.displayName || '-';
+  document.getElementById('profileCust').textContent = customerInfo.cust_id || '-';
+}
+
+function renderCardHtml(card, isUnavail) {
+  var imgUrl = card.image_url;
+  if (!imgUrl || !imgUrl.startsWith('http')) {
+    var typeInfo = cardTypesMap[card.card_type];
+    if (typeInfo && typeInfo.image_url && typeInfo.image_url.startsWith('http')) {
+      imgUrl = typeInfo.image_url;
+    }
+  }
+  var hasImage = imgUrl && imgUrl.startsWith('http');
+  var imgHtml = hasImage
+    ? '<img src="' + imgUrl + '" class="card-bg-img" onerror="this.style.display=\'none\'">'
+    : '';
+  var noImageClass = hasImage ? '' : 'no-image';
+  var isSelected = !!selectedCards[card.card_id];
+  var unavailClass = isUnavail ? ' unavail' : '';
+
+  return '<div class="card-btn ' + noImageClass + unavailClass + (isSelected ? ' selected' : '') + '"'
+    + ' data-card-id="' + card.card_id + '"'
+    + ' onclick="toggleCard(\'' + card.card_id + '\')">'
+    + imgHtml
+    + '<div class="card-overlay">'
+    + '<div class="card-name">' + truncate(card.card_type, 12) + '</div>'
+    + '<div class="card-last4">' + (card.last4 || '') + '</div>'
+    + '<div class="card-owner">' + truncate(card.full_name, 10) + '</div>'
+    + '</div>'
+    + '<div class="check-overlay"></div>'
+    + '</div>';
+}
+
+function renderCards() {
+  var availCards = allCards.filter(function(c) { return c.available === true; });
+  var unavailCards = allCards.filter(function(c) { return c.available !== true; });
+
+  var grid = document.getElementById('cardGrid');
+  if (availCards.length === 0 && unavailCards.length === 0) {
+    grid.innerHTML = '<div class="no-cards-msg">No eligible cards found (KFV/KCC/THE1/LOTUS)</div>';
+    document.getElementById('unavailSection').classList.add('hidden');
+    return;
+  }
+
+  grid.innerHTML = availCards.map(function(card) { return renderCardHtml(card, false); }).join('');
+
+  var unavailSection = document.getElementById('unavailSection');
+  if (unavailCards.length > 0) {
+    unavailSection.classList.remove('hidden');
+    document.getElementById('unavailCount').textContent = unavailCards.length;
+    document.getElementById('unavailGrid').innerHTML =
+      unavailCards.map(function(card) { return renderCardHtml(card, true); }).join('');
+  } else {
+    unavailSection.classList.add('hidden');
+  }
+
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  var count = Object.keys(selectedCards).length;
+  document.getElementById('selectedCount').textContent = count + ' selected';
+  renderSelectedSection();
+}
+
+function renderSelectedSection() {
+  var keys = Object.keys(selectedCards);
+  var section = document.getElementById('selectedSection');
+  var list = document.getElementById('selectedList');
+
+  if (keys.length === 0) {
+    section.classList.add('hidden');
+    return;
+  }
+
+  section.classList.remove('hidden');
+  document.getElementById('selectedTitle').textContent = 'Selected (' + keys.length + ' cards)';
+
+  var html = '';
+  for (var i = 0; i < keys.length; i++) {
+    var card = selectedCards[keys[i]];
+    var currentAmount = card._amount || CONFIG.DEFAULT_AMOUNT;
+    html += '<div class="selected-card-row">'
+      + '<div class="selected-card-info">'
+      + '<div class="type-line">' + card.card_type + ' ' + (card.last4 || '') + '</div>'
+      + '<div class="name-line">' + (card.full_name || '-') + '</div>'
+      + '</div>'
+      + '<div class="amount-wrapper">'
+      + '<span class="baht">&#3647;</span>'
+      + '<input type="text" class="amount-input" inputmode="numeric"'
+      + ' data-card-id="' + card.card_id + '"'
+      + ' value="' + formatNumber(currentAmount) + '"'
+      + ' onchange="onAmountChange(this)"'
+      + ' onfocus="this.select()">'
+      + '</div>'
+      + '<button class="remove-btn" onclick="toggleCard(\'' + card.card_id + '\')" title="Remove">&#10005;</button>'
+      + '</div>';
+  }
+
+  list.innerHTML = html;
+}
+
+// CARD SELECTION (multi-select)
+function toggleCard(cardId) {
+  if (selectedCards[cardId]) {
+    delete selectedCards[cardId];
+  } else {
+    var card = allCards.find(function(c) { return c.card_id === cardId; });
+    if (card) {
+      selectedCards[cardId] = Object.assign({}, card, { _amount: CONFIG.DEFAULT_AMOUNT });
+    }
+  }
+  renderCards();
+}
+
+function onAmountChange(input) {
+  var cardId = input.getAttribute('data-card-id');
+  var amount = parseAmount(input.value);
+  if (amount <= 0) amount = CONFIG.DEFAULT_AMOUNT;
+  if (selectedCards[cardId]) {
+    selectedCards[cardId]._amount = amount;
+  }
+  input.value = formatNumber(amount);
+}
+
+// TOGGLE UNAVAILABLE
+function toggleUnavail() {
+  var grid = document.getElementById('unavailGrid');
+  var btn = document.getElementById('unavailToggleBtn');
+  var count = allCards.filter(function(c) { return c.available !== true; }).length;
+  if (grid.classList.contains('hidden')) {
+    grid.classList.remove('hidden');
+    btn.innerHTML = '&#9660; Not with team (<span id="unavailCount">' + count + '</span>)';
+  } else {
+    grid.classList.add('hidden');
+    btn.innerHTML = '&#9654; Not with team (<span id="unavailCount">' + count + '</span>)';
+  }
+}
+
+// SUBMIT
+async function submitForm() {
+  var cardIds = Object.keys(selectedCards);
+  if (cardIds.length === 0) {
+    showToast('Please select at least 1 card', 'warning');
+    return;
+  }
+
+  var cards = cardIds.map(function(id) {
+    var c = selectedCards[id];
+    return {
+      cardId: c.card_id,
+      cardType: c.card_type,
+      last4: String(c.last4 || '').replace(/^'/, ''),
+      fullName: c.full_name || '',
+      amount: c._amount || CONFIG.DEFAULT_AMOUNT
+    };
+  });
+
+  document.getElementById('processingOverlay').classList.remove('hidden');
+  document.getElementById('submitBtn').disabled = true;
+
+  try {
+    var body = {
+      action: 'submitPetlovRegis',
+      lineUserId: lineProfile.userId,
+      displayName: lineProfile.displayName,
+      custId: customerInfo.cust_id,
+      cards: cards
+    };
+
+    var res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+    var result = await res.json();
+
+    document.getElementById('processingOverlay').classList.add('hidden');
+
+    if (result.success) {
+      var detail = CONFIG.PROMOTION + '\n';
+      cards.forEach(function(c) {
+        detail += '\n' + c.cardType + ' ' + c.last4;
+        detail += '\n' + c.fullName;
+      });
+      detail += '\n\n' + (result.timestamp || '');
+
+      document.getElementById('successDetail').textContent = detail;
+      document.getElementById('mainContent').classList.add('hidden');
+      document.getElementById('successScreen').classList.remove('hidden');
+
+      setTimeout(function() { closeLiff(); }, 3000);
+    } else {
+      showToast('Error: ' + (result.error || 'Unknown'), 'error');
+      document.getElementById('submitBtn').disabled = false;
+    }
+  } catch (e) {
+    document.getElementById('processingOverlay').classList.add('hidden');
+    showToast('Error: ' + e.message, 'error');
+    document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+function closeLiff() {
+  if (liff.isInClient()) {
+    liff.closeWindow();
+  } else {
+    window.close();
+  }
+}
+
+// INIT ON LOAD
+document.addEventListener('DOMContentLoaded', function() {
+  // Amount input formatting
+  document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('amount-input')) {
+      var raw = e.target.value.replace(/[^0-9]/g, '');
+      if (raw) {
+        e.target.value = formatNumber(parseInt(raw, 10));
+      }
+    }
+  });
+
+  init();
+});
+</script>
+</body>
+</html>
