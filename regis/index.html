@@ -75,67 +75,83 @@
     .profile-bar .name { font-size: 0.7rem; color: #fff; font-weight: 500; }
     .profile-bar .cust { font-size: 0.6rem; color: rgba(255,255,255,0.6); }
 
-    /* ── Section Label ── */
+    /* ── Section Header ── */
+    .section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 6px; margin-bottom: 4px;
+    }
     .section-label {
       font-size: 0.65rem; color: rgba(255,255,255,0.7);
-      font-weight: 500; margin-bottom: 4px; margin-top: 6px;
+      font-weight: 500;
       text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    /* ── Card Strip (compact overlapping) ── */
+    /* ── Add Card Button ── */
+    .add-card-btn {
+      font-size: 0.55rem; color: #4ecdc4;
+      background: rgba(78,205,196,0.15);
+      border: 1px solid rgba(78,205,196,0.3);
+      border-radius: 6px; padding: 3px 8px;
+      cursor: pointer; font-family: 'Prompt', sans-serif;
+    }
+    .add-card-btn:hover { background: rgba(78,205,196,0.25); }
+
+    /* ── Card Grid (5 per row, overlapping) ── */
     .card-grid {
       display: flex;
-      overflow-x: auto;
+      flex-wrap: wrap;
       padding: 4px 0;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
     }
-    .card-grid::-webkit-scrollbar { display: none; }
-
     .card-btn {
       position: relative;
       flex-shrink: 0;
-      width: 85px; height: 54px;
+      width: 74px; height: 47px;
       border: 2px solid rgba(255,255,255,0.15);
       border-radius: 6px;
       background-color: rgba(255,255,255,0.1);
       cursor: pointer;
       transition: all 0.2s;
       overflow: hidden;
-      margin-left: -12px;
+      margin-left: -8px;
+      margin-bottom: 4px;
       box-shadow: -2px 0 6px rgba(0,0,0,0.3);
     }
-    .card-btn:first-child { margin-left: 0; }
+    .card-btn:nth-child(5n+1) { margin-left: 0; }
     .card-btn:hover { transform: translateY(-3px); z-index: 5; }
     .card-btn.selected {
       border-color: #00d084; z-index: 10;
       transform: translateY(-6px);
       box-shadow: 0 4px 12px rgba(0,208,132,0.4);
     }
+    .card-btn.unavail { opacity: 0.5; filter: grayscale(0.4); }
+    .card-btn.unavail.selected { opacity: 1; filter: none; }
 
     .card-btn .card-bg-img {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
       object-fit: cover; border-radius: 4px;
     }
-
     .card-btn .card-overlay {
       position: absolute; inset: 0;
       display: flex; flex-direction: column;
       justify-content: flex-end; align-items: flex-start;
-      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
-      padding: 3px 4px;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+      padding: 2px 4px;
     }
     .card-btn .card-name {
-      font-size: 0.4rem; color: #fff; font-weight: 600;
+      font-size: 0.38rem; color: #fff; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       max-width: 95%; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .card-btn .card-last4 {
-      font-size: 0.6rem; color: #fff; font-weight: 700;
+      font-size: 0.55rem; color: #fff; font-weight: 700;
       letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
-    .card-btn .card-owner { display: none; }
+    .card-btn .card-owner {
+      font-size: 0.32rem; color: rgba(255,255,255,0.8);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 95%; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
     .card-btn.no-image { background: linear-gradient(135deg, #3a3a5c 0%, #2a2a4c 100%); }
     .card-btn.no-image .card-overlay { background: transparent; justify-content: center; align-items: center; }
 
@@ -146,7 +162,7 @@
       opacity: 0; transition: opacity 0.2s; border-radius: 4px; z-index: 10;
     }
     .card-btn .check-overlay::after {
-      content: '\2713'; font-size: 1.2rem; color: #fff;
+      content: '\2713'; font-size: 1.0rem; color: #fff;
       font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .card-btn.selected .check-overlay { opacity: 1; }
@@ -155,6 +171,42 @@
       text-align: center; width: 100%;
       color: rgba(255,255,255,0.5); font-size: 0.8rem; padding: 20px;
     }
+
+    /* ── Unavail Toggle ── */
+    .unavail-toggle {
+      font-size: 0.6rem; color: rgba(255,255,255,0.5);
+      background: none; border: none; cursor: pointer;
+      padding: 2px 0; font-family: 'Prompt', sans-serif;
+    }
+    .unavail-toggle:hover { color: rgba(255,255,255,0.8); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9998;
+    }
+    .modal-box {
+      background: #2a2a4c; border-radius: 12px;
+      padding: 16px; width: 90%; max-width: 340px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .modal-box h3 { font-size: 0.85rem; color: #fff; margin-bottom: 10px; text-align: center; }
+    .modal-box select, .modal-box input {
+      width: 100%; padding: 8px 10px; margin-bottom: 8px;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08); color: #fff;
+      font-family: 'Prompt', sans-serif; font-size: 0.8rem; outline: none;
+    }
+    .modal-box select option { background: #2a2a4c; color: #fff; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .modal-actions button {
+      flex: 1; padding: 8px; border-radius: 8px; border: none;
+      font-family: 'Prompt', sans-serif; font-size: 0.8rem; cursor: pointer;
+    }
+    .modal-actions .btn-save { background: #4ecdc4; color: #fff; }
+    .modal-actions .btn-cancel { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
 
     /* ── Form ── */
     .form-box {
@@ -275,8 +327,15 @@
     </div>
 
     <!-- Card Selection -->
-    <div class="section-label">เลือกบัตร (1 ใบ)</div>
+    <div class="section-header">
+      <div class="section-label">เลือกบัตร (1 ใบ)</div>
+      <button class="add-card-btn" onclick="showAddCardModal()">+ เพิ่มบัตร</button>
+    </div>
     <div id="cardGrid" class="card-grid"></div>
+    <div id="unavailSection" class="hidden">
+      <button class="unavail-toggle" id="unavailToggleBtn" onclick="toggleUnavail()">▶ บัตรที่ไม่อยู่กับทีมงาน (<span id="unavailCount">0</span>)</button>
+      <div id="unavailGrid" class="card-grid hidden"></div>
+    </div>
 
     <!-- Form -->
     <div class="form-box" id="formBox">
@@ -313,6 +372,21 @@
       </button>
     </div>
 
+  </div>
+</div>
+
+<!-- Add Card Modal -->
+<div id="addCardModal" class="modal-overlay hidden" onclick="if(event.target===this)closeAddCardModal()">
+  <div class="modal-box">
+    <h3>➕ เพิ่มบัตรใหม่</h3>
+    <select id="newCardType"><option value="">— เลือกประเภทบัตร —</option></select>
+    <input type="tel" id="newLast4" maxlength="4" inputmode="numeric" placeholder="เลข 4 ตัวท้าย" autocomplete="off">
+    <input type="text" id="newCardName" maxlength="50" placeholder="ชื่อ-สกุล (ภาษาอังกฤษ)" list="newNameSugg" autocomplete="off" style="text-transform:uppercase">
+    <datalist id="newNameSugg"></datalist>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddCardModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="addNewCard()">บันทึก</button>
+    </div>
   </div>
 </div>
 
@@ -395,10 +469,8 @@ async function init() {
   try {
     setLoading('กำลังเชื่อมต่อ LINE...');
 
-    // Init Supabase
     sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
-    // Init LIFF
     await liff.init({ liffId: CONFIG.LIFF_ID });
 
     if (!liff.isLoggedIn()) {
@@ -410,7 +482,6 @@ async function init() {
 
     setLoading('กำลังดึงข้อมูล...');
 
-    // Query user
     var userResult = await sb.from('users').select('*')
       .eq('line_user_id', lineProfile.userId).single();
 
@@ -420,26 +491,23 @@ async function init() {
     }
     customerInfo = userResult.data;
 
-    // Query cards + card_types in parallel
     var [cardsResult, typesResult] = await Promise.all([
       sb.from('cards').select('*').eq('cust_id', customerInfo.cust_id),
       sb.from('card_types').select('*')
     ]);
 
-    // Build type_code map: card_name → { type_code, image_url }
     var allTypes = typesResult.data || [];
     allTypes.forEach(function(t) {
       cardTypesMap[t.card_name] = { type_code: t.type_code, image_url: t.image_url, bank: t.bank };
     });
 
-    // Filter eligible cards (type_code in ELIGIBLE_TYPES)
     var rawCards = cardsResult.data || [];
     allCards = rawCards.filter(function(card) {
       var typeInfo = cardTypesMap[card.card_type];
       return typeInfo && CONFIG.ELIGIBLE_TYPES.indexOf(typeInfo.type_code) !== -1;
     });
 
-    // Build name suggestions (unique names from all user's cards + user info)
+    // Build name suggestions
     var nameSet = {};
     rawCards.forEach(function(c) {
       if (c.full_name) nameSet[c.full_name.toUpperCase()] = true;
@@ -448,7 +516,6 @@ async function init() {
     if (customerInfo.full_name) nameSet[customerInfo.full_name.toUpperCase()] = true;
     nameSuggestions = Object.keys(nameSet);
 
-    // Render
     renderProfile();
     renderCards();
     renderNameSuggestions();
@@ -471,45 +538,57 @@ function renderProfile() {
   document.getElementById('profileCust').textContent = customerInfo.cust_id || '-';
 }
 
-function renderCards() {
-  var grid = document.getElementById('cardGrid');
+function renderCardHtml(card, isUnavail) {
+  var imgUrl = card.image_url;
+  if (!imgUrl || !imgUrl.startsWith('http')) {
+    var typeInfo = cardTypesMap[card.card_type];
+    if (typeInfo && typeInfo.image_url && typeInfo.image_url.startsWith('http')) {
+      imgUrl = typeInfo.image_url;
+    }
+  }
+  var hasImage = imgUrl && imgUrl.startsWith('http');
+  var imgHtml = hasImage
+    ? '<img src="' + imgUrl + '" class="card-bg-img" onerror="this.style.display=\'none\'">'
+    : '';
+  var noImageClass = hasImage ? '' : 'no-image';
+  var isSelected = selectedCard && selectedCard.card_id === card.card_id;
+  var unavailClass = isUnavail ? ' unavail' : '';
 
-  if (allCards.length === 0) {
+  return '<div class="card-btn ' + noImageClass + unavailClass + (isSelected ? ' selected' : '') + '"'
+    + ' data-card-id="' + card.card_id + '"'
+    + ' onclick="selectCard(\'' + card.card_id + '\')">'
+    + imgHtml
+    + '<div class="card-overlay">'
+    + '<div class="card-name">' + truncate(card.card_type, 12) + '</div>'
+    + '<div class="card-last4">' + (card.last4 || '') + '</div>'
+    + '<div class="card-owner">' + truncate(card.full_name, 10) + '</div>'
+    + '</div>'
+    + '<div class="check-overlay"></div>'
+    + '</div>';
+}
+
+function renderCards() {
+  var availCards = allCards.filter(function(c) { return c.available === true; });
+  var unavailCards = allCards.filter(function(c) { return c.available !== true; });
+
+  var grid = document.getElementById('cardGrid');
+  if (availCards.length === 0 && unavailCards.length === 0) {
     grid.innerHTML = '<div class="no-cards-msg">ไม่พบบัตร SCB ที่ร่วมโปรได้</div>';
+    document.getElementById('unavailSection').classList.add('hidden');
     return;
   }
 
-  var html = allCards.map(function(card) {
-    // Image fallback: card.image_url → card_types image_url → no-image
-    var imgUrl = card.image_url;
-    if (!imgUrl || !imgUrl.startsWith('http')) {
-      var typeInfo = cardTypesMap[card.card_type];
-      if (typeInfo && typeInfo.image_url && typeInfo.image_url.startsWith('http')) {
-        imgUrl = typeInfo.image_url;
-      }
-    }
+  grid.innerHTML = availCards.map(function(card) { return renderCardHtml(card, false); }).join('');
 
-    var hasImage = imgUrl && imgUrl.startsWith('http');
-    var imgHtml = hasImage
-      ? '<img src="' + imgUrl + '" class="card-bg-img" onerror="this.style.display=\'none\'">'
-      : '';
-    var noImageClass = hasImage ? '' : 'no-image';
-    var isSelected = selectedCard && selectedCard.card_id === card.card_id;
-
-    return '<div class="card-btn ' + noImageClass + (isSelected ? ' selected' : '') + '"'
-      + ' data-card-id="' + card.card_id + '"'
-      + ' onclick="selectCard(\'' + card.card_id + '\')">'
-      + imgHtml
-      + '<div class="card-overlay">'
-      + '<div class="card-name">' + truncate(card.card_type, 12) + '</div>'
-      + '<div class="card-last4">' + (card.last4 || '') + '</div>'
-      + '<div class="card-owner">' + truncate(card.full_name, 12) + '</div>'
-      + '</div>'
-      + '<div class="check-overlay"></div>'
-      + '</div>';
-  }).join('');
-
-  grid.innerHTML = html;
+  var unavailSection = document.getElementById('unavailSection');
+  if (unavailCards.length > 0) {
+    unavailSection.classList.remove('hidden');
+    document.getElementById('unavailCount').textContent = unavailCards.length;
+    document.getElementById('unavailGrid').innerHTML =
+      unavailCards.map(function(card) { return renderCardHtml(card, true); }).join('');
+  } else {
+    unavailSection.classList.add('hidden');
+  }
 }
 
 function renderNameSuggestions() {
@@ -523,19 +602,111 @@ function renderNameSuggestions() {
 // CARD SELECTION (single only)
 // ═══════════════════════════════════════
 function selectCard(cardId) {
-  // Toggle: if same card clicked, deselect
   if (selectedCard && selectedCard.card_id === cardId) {
     selectedCard = null;
   } else {
     selectedCard = allCards.find(function(c) { return c.card_id === cardId; });
   }
 
-  // Re-render cards to update selection
   renderCards();
 
-  // Prefill name from selected card
   if (selectedCard && selectedCard.full_name) {
     document.getElementById('nameOnCard').value = selectedCard.full_name.toUpperCase();
+  }
+}
+
+// ═══════════════════════════════════════
+// TOGGLE UNAVAILABLE CARDS
+// ═══════════════════════════════════════
+function toggleUnavail() {
+  var grid = document.getElementById('unavailGrid');
+  var btn = document.getElementById('unavailToggleBtn');
+  var count = allCards.filter(function(c) { return c.available !== true; }).length;
+  if (grid.classList.contains('hidden')) {
+    grid.classList.remove('hidden');
+    btn.innerHTML = '▼ บัตรที่ไม่อยู่กับทีมงาน (<span id="unavailCount">' + count + '</span>)';
+  } else {
+    grid.classList.add('hidden');
+    btn.innerHTML = '▶ บัตรที่ไม่อยู่กับทีมงาน (<span id="unavailCount">' + count + '</span>)';
+  }
+}
+
+// ═══════════════════════════════════════
+// ADD CARD MODAL
+// ═══════════════════════════════════════
+function showAddCardModal() {
+  var select = document.getElementById('newCardType');
+  select.innerHTML = '<option value="">— เลือกประเภทบัตร —</option>';
+  Object.keys(cardTypesMap).forEach(function(name) {
+    var t = cardTypesMap[name];
+    if (CONFIG.ELIGIBLE_TYPES.indexOf(t.type_code) !== -1) {
+      select.innerHTML += '<option value="' + name + '">' + name + '</option>';
+    }
+  });
+
+  var dl = document.getElementById('newNameSugg');
+  dl.innerHTML = nameSuggestions.map(function(n) {
+    return '<option value="' + n + '">';
+  }).join('');
+
+  var defaultName = '';
+  if (customerInfo.name_on_card) defaultName = customerInfo.name_on_card.toUpperCase();
+  else if (customerInfo.full_name) defaultName = customerInfo.full_name.toUpperCase();
+  document.getElementById('newCardName').value = defaultName;
+  document.getElementById('newLast4').value = '';
+
+  document.getElementById('addCardModal').classList.remove('hidden');
+}
+
+function closeAddCardModal() {
+  document.getElementById('addCardModal').classList.add('hidden');
+}
+
+async function addNewCard() {
+  var cardType = document.getElementById('newCardType').value;
+  var last4 = document.getElementById('newLast4').value.trim();
+  var fullName = document.getElementById('newCardName').value.trim().toUpperCase();
+
+  if (!cardType) { showToast('กรุณาเลือกประเภทบัตร', 'warning'); return; }
+  if (!last4 || last4.length !== 4 || !/^\d{4}$/.test(last4)) { showToast('กรุณากรอกเลข 4 ตัวท้าย', 'warning'); return; }
+  if (!fullName) { showToast('กรุณากรอกชื่อ', 'warning'); return; }
+
+  try {
+    var body = {
+      action: 'addNewCard',
+      custId: customerInfo.cust_id,
+      cardType: cardType,
+      last4: last4,
+      fullName: fullName
+    };
+
+    var res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+    var result = await res.json();
+
+    if (result.success) {
+      var typeInfo = cardTypesMap[cardType] || {};
+      allCards.push({
+        card_id: result.cardId || ('NEW_' + Date.now()),
+        card_type: cardType,
+        last4: last4,
+        full_name: fullName,
+        cust_id: customerInfo.cust_id,
+        available: false,
+        image_url: typeInfo.image_url || ''
+      });
+
+      renderCards();
+      closeAddCardModal();
+      showToast('เพิ่มบัตรสำเร็จ', 'success');
+    } else {
+      showToast('Error: ' + (result.error || 'Unknown'), 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
   }
 }
 
@@ -543,7 +714,6 @@ function selectCard(cardId) {
 // INPUT FORMATTING
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
-  // Card number: auto-format with spaces
   document.getElementById('cardNumber').addEventListener('input', function() {
     var val = this.value.replace(/\D/g, '');
     if (val.length > 16) val = val.substring(0, 16);
@@ -553,7 +723,6 @@ document.addEventListener('DOMContentLoaded', function() {
     detectBrand(val);
   });
 
-  // Expiry: auto-format MM/YY
   document.getElementById('expiry').addEventListener('input', function() {
     var val = this.value.replace(/\D/g, '');
     if (val.length > 4) val = val.substring(0, 4);
@@ -562,16 +731,22 @@ document.addEventListener('DOMContentLoaded', function() {
     this.classList.remove('error');
   });
 
-  // CVV: digits only
   document.getElementById('cvv').addEventListener('input', function() {
     this.value = this.value.replace(/\D/g, '').substring(0, 4);
     this.classList.remove('error');
   });
 
-  // Name: uppercase
   document.getElementById('nameOnCard').addEventListener('input', function() {
     this.value = this.value.toUpperCase();
     this.classList.remove('error');
+  });
+
+  document.getElementById('newLast4').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').substring(0, 4);
+  });
+
+  document.getElementById('newCardName').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
   });
 
   init();
@@ -605,8 +780,6 @@ function luhnCheck(num) {
 }
 
 function validate() {
-  var ok = true;
-
   if (!selectedCard) {
     showToast('กรุณาเลือกบัตร 1 ใบ', 'warning');
     return false;
@@ -667,7 +840,6 @@ async function submitForm() {
 
   var typeInfo = cardTypesMap[selectedCard.card_type] || {};
 
-  // Show processing
   document.getElementById('processingOverlay').classList.remove('hidden');
   document.getElementById('submitBtn').disabled = true;
 
@@ -702,7 +874,6 @@ async function submitForm() {
       document.getElementById('mainContent').classList.add('hidden');
       document.getElementById('successScreen').classList.remove('hidden');
 
-      // Auto close after 3s
       setTimeout(function() { closeLiff(); }, 3000);
     } else {
       showToast('Error: ' + (result.error || 'Unknown'), 'error');
