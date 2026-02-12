@@ -923,6 +923,621 @@
       white-space: nowrap;
     }
 
+    /* ===== Tab Bar ===== */
+    .tab-bar {
+      display: flex;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 10px;
+      gap: 3px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+    .tab-content.hidden { display: none !important; }
+
+    /* ===== Tab placeholder ===== */
+    .tab-placeholder {
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+      padding: 40px 20px;
+    }
+
+    /* ===== Tab 1: Card Status ===== */
+    .status-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.7);
+    }
+    .status-toggle-row label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: rgba(255,255,255,0.8);
+      cursor: pointer;
+    }
+    .status-toggle-row input[type="checkbox"] {
+      width: 14px; height: 14px;
+      accent-color: #ff6b6b;
+    }
+    .status-card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .status-card-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .status-card-item:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .status-card-img {
+      width: 48px; height: 30px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: rgba(0,0,0,0.2);
+    }
+    .status-card-info { flex: 1; min-width: 0; }
+    .status-card-name {
+      font-size: 0.75rem;
+      color: #fff;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .status-card-sub {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 1px;
+    }
+    .status-badge {
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .status-badge.available {
+      background: rgba(16,185,129,0.25);
+      color: #34d399;
+    }
+    .status-badge.unavailable {
+      background: rgba(239,68,68,0.25);
+      color: #f87171;
+    }
+    /* Card Status unavailable item */
+    .status-card-item.unavail .status-card-name { color: #f87171; }
+    .status-card-item.unavail .status-card-sub { color: rgba(248,113,113,0.7); }
+
+    /* Card Detail Panel */
+    .card-detail-panel {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .card-detail-panel .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .card-detail-panel .detail-img {
+      width: 80px; height: 50px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: rgba(0,0,0,0.2);
+    }
+    .card-detail-panel .detail-title {
+      font-size: 0.85rem;
+      color: #fff;
+      font-weight: 600;
+    }
+    .card-detail-panel .detail-sub {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 2px;
+    }
+    .card-detail-panel .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.7rem;
+    }
+    .card-detail-panel .detail-label { color: rgba(255,255,255,0.5); }
+    .card-detail-panel .detail-value { color: #fff; font-weight: 500; }
+    .card-detail-panel .detail-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+    .card-detail-panel .detail-btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+    }
+    .card-detail-panel .detail-btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+    }
+    .card-detail-panel .detail-btn-close {
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.8);
+    }
+    .card-detail-panel .pending-note {
+      margin-top: 8px;
+      background: rgba(245,158,11,0.2);
+      color: #fbbf24;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      text-align: center;
+    }
+
+    /* ===== Tab 2: Return Card ===== */
+    .return-card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .return-card-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .return-card-item.selected {
+      border-color: #00d084;
+      background: rgba(0,208,132,0.15);
+    }
+    .return-card-item input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: #00d084;
+      flex-shrink: 0;
+    }
+    .return-card-item .rc-info { flex: 1; min-width: 0; }
+    .return-card-item .rc-type {
+      font-size: 0.75rem;
+      color: #fff;
+      font-weight: 600;
+    }
+    .return-card-item .rc-name {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.6);
+    }
+    .return-select-all {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      background: rgba(0,208,132,0.2);
+      color: #00d084;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 8px;
+      font-family: 'Prompt', sans-serif;
+    }
+    /* Delivery options */
+    .delivery-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .delivery-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .delivery-item.selected {
+      border-color: #00d084;
+      background: rgba(0,208,132,0.1);
+    }
+    .delivery-item input[type="radio"] {
+      width: 16px; height: 16px;
+      accent-color: #00d084;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .delivery-info { flex: 1; }
+    .delivery-title {
+      font-size: 0.75rem;
+      color: #fff;
+      font-weight: 600;
+    }
+    .delivery-desc {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+    .delivery-badge-free {
+      display: inline-block;
+      background: rgba(16,185,129,0.3);
+      color: #34d399;
+      font-size: 0.5rem;
+      padding: 1px 6px;
+      border-radius: 8px;
+      margin-left: 4px;
+    }
+    .delivery-badge-paid {
+      display: inline-block;
+      background: rgba(245,158,11,0.3);
+      color: #fbbf24;
+      font-size: 0.5rem;
+      padding: 1px 6px;
+      border-radius: 8px;
+      margin-left: 4px;
+    }
+    /* Pickup section */
+    .pickup-box {
+      background: rgba(245,158,11,0.15);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+    .pickup-label {
+      font-size: 0.7rem;
+      color: #fbbf24;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .pickup-date-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .pickup-date-item {
+      text-align: center;
+      padding: 6px 2px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pickup-date-item.selected {
+      border-color: #fbbf24;
+      background: rgba(245,158,11,0.2);
+    }
+    .pickup-date-item .pd-day {
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.5);
+    }
+    .pickup-date-item .pd-num {
+      font-size: 0.75rem;
+      color: #fff;
+      font-weight: 600;
+    }
+    .pickup-time-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .pickup-time-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.7rem;
+      color: #fff;
+    }
+    .pickup-time-item.selected {
+      border-color: #fbbf24;
+      background: rgba(245,158,11,0.2);
+    }
+    .pickup-time-item input[type="radio"] {
+      width: 14px; height: 14px;
+      accent-color: #fbbf24;
+    }
+    /* Address form (return) */
+    .return-form-group {
+      margin-bottom: 8px;
+    }
+    .return-form-group label {
+      display: block;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 3px;
+    }
+    .return-form-group input,
+    .return-form-group textarea {
+      width: 100%;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.75rem;
+      font-family: 'Prompt', sans-serif;
+    }
+    .return-form-group textarea {
+      resize: vertical;
+      min-height: 50px;
+    }
+    .return-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .return-addr-choice {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .return-addr-choice button {
+      flex: 1;
+      padding: 8px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.6);
+      font-size: 0.65rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+      transition: all 0.2s;
+    }
+    .return-addr-choice button.selected {
+      border-color: #00d084;
+      background: rgba(0,208,132,0.15);
+      color: #00d084;
+    }
+    .last-addr-preview {
+      background: rgba(0,208,132,0.1);
+      border: 1px solid rgba(0,208,132,0.2);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .return-submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #10B981, #059669);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+      margin-top: 8px;
+    }
+    .return-submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .return-success-box {
+      text-align: center;
+      padding: 30px 16px;
+    }
+    .return-success-box .icon { font-size: 3rem; margin-bottom: 10px; }
+    .return-success-box .title {
+      font-size: 1rem;
+      color: #34d399;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .return-success-box .desc {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+    }
+
+    /* ===== Tab 4: Admin Panel ===== */
+    .admin-section {
+      margin-bottom: 10px;
+    }
+    .admin-section-title {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.8);
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .admin-section-title .count-badge {
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.55rem;
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+    .admin-req-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .admin-req-item {
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .admin-req-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .admin-req-cust {
+      font-size: 0.75rem;
+      color: #fff;
+      font-weight: 600;
+    }
+    .admin-req-type {
+      font-size: 0.55rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .admin-req-type.card-req {
+      background: rgba(99,102,241,0.3);
+      color: #a5b4fc;
+    }
+    .admin-req-type.return-req {
+      background: rgba(16,185,129,0.3);
+      color: #6ee7b7;
+    }
+    .admin-req-detail {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .admin-req-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .admin-req-actions button {
+      flex: 1;
+      padding: 6px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+    }
+    .admin-btn-approve {
+      background: rgba(16,185,129,0.3);
+      color: #34d399;
+    }
+    .admin-btn-reject {
+      background: rgba(239,68,68,0.3);
+      color: #f87171;
+    }
+    /* Admin user search */
+    .admin-search-box {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .admin-search-box input {
+      flex: 1;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.75rem;
+      font-family: 'Prompt', sans-serif;
+    }
+    .admin-search-box button {
+      padding: 8px 14px;
+      background: rgba(99,102,241,0.3);
+      color: #a5b4fc;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+    }
+    .admin-user-item {
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-user-info {
+      font-size: 0.7rem;
+      color: #fff;
+    }
+    .admin-user-sub {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.5);
+    }
+    .admin-user-cards {
+      font-size: 0.6rem;
+      color: #00d084;
+      font-weight: 600;
+    }
+    .admin-filter-row {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .admin-filter-btn {
+      padding: 4px 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.6rem;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+    }
+    .admin-filter-btn.active {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border-color: rgba(255,255,255,0.3);
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -930,7 +1545,7 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h1>💳 D-SERVE แจ้งยอดนอกรอบ <span class="speed-badge">⚡ Supabase</span></h1>
+      <h1>💳 D-SERVE Card Management <span class="speed-badge">⚡ Supabase</span></h1>
     </div>
     
     <!-- Error Screen -->
@@ -973,6 +1588,164 @@
         </div>
       </div>
       
+      <!-- Tab Bar -->
+      <div id="tabBar" class="tab-bar hidden">
+        <button class="tab-btn" data-tab="status" onclick="switchTab('status')">💳 สถานะ</button>
+        <button class="tab-btn" data-tab="return" onclick="switchTab('return')">📦 คืนบัตร</button>
+        <button class="tab-btn active" data-tab="extra" onclick="switchTab('extra')">💰 นอกรอบ</button>
+        <button class="tab-btn" data-tab="admin" onclick="switchTab('admin')" id="adminTab" style="display:none;">⚙️ Admin</button>
+      </div>
+
+      <!-- ===== Tab: สถานะบัตร ===== -->
+      <div id="tabStatus" class="tab-content hidden">
+        <div class="section-box">
+          <div class="status-toggle-row">
+            <span id="statusCardCount"></span>
+            <label>
+              <input type="checkbox" id="statusShowAll" onchange="loadCardStatus()">
+              <span>แสดงบัตรไม่อยู่</span>
+            </label>
+          </div>
+          <div id="statusCardList" class="status-card-list"></div>
+        </div>
+        <div id="cardDetailPanel"></div>
+      </div>
+
+      <!-- ===== Tab: แจ้งคืนบัตร ===== -->
+      <div id="tabReturn" class="tab-content hidden">
+        <!-- Return: Main Form -->
+        <div id="returnFormSection">
+          <!-- Card Selection -->
+          <div class="section-box" style="margin-bottom:8px;">
+            <div class="section-title">💳 เลือกบัตรที่ต้องการรับคืน</div>
+            <button type="button" class="return-select-all" onclick="returnToggleSelectAll()">
+              ☑️ <span id="returnSelectAllText">เลือกทั้งหมด</span>
+            </button>
+            <div id="returnCardList" class="return-card-list"></div>
+          </div>
+
+          <!-- Delivery Method -->
+          <div class="section-box" style="margin-bottom:8px;">
+            <div class="section-title">🚚 ช่องทางการรับบัตร</div>
+            <div class="delivery-list">
+              <label class="delivery-item selected" onclick="returnSelectDelivery(this, 1)">
+                <input type="radio" name="returnDelivery" value="ส่ง ปณ / Kerry รอบ 1 และ 16" checked>
+                <div class="delivery-info">
+                  <div class="delivery-title">📮 ส่ง ปณ / Kerry <span class="delivery-badge-free">ฟรี</span></div>
+                  <div class="delivery-desc">รอบจัดส่งวันที่ 1 และ 16 ของเดือน</div>
+                </div>
+              </label>
+              <label class="delivery-item" onclick="returnSelectDelivery(this, 2)">
+                <input type="radio" name="returnDelivery" value="ส่ง Grab เร่งด่วน">
+                <div class="delivery-info">
+                  <div class="delivery-title">🏍️ Grab เร่งด่วน <span class="delivery-badge-paid">ค่าใช้จ่ายตามจริง</span></div>
+                  <div class="delivery-desc">ส่งภายใน 1-2 ชม. (กทม./ปริมณฑล)</div>
+                </div>
+              </label>
+              <label class="delivery-item" onclick="returnSelectDelivery(this, 3)">
+                <input type="radio" name="returnDelivery" value="เรียก Grab มารับเอง">
+                <div class="delivery-info">
+                  <div class="delivery-title">🛵 เรียก Grab มารับเอง <span class="delivery-badge-free">ฟรี</span></div>
+                  <div class="delivery-desc">ลูกค้าเรียก Grab มารับที่ร้าน</div>
+                </div>
+              </label>
+              <label class="delivery-item" onclick="returnSelectDelivery(this, 4)">
+                <input type="radio" name="returnDelivery" value="รับเองที่สุขุมวิท 39">
+                <div class="delivery-info">
+                  <div class="delivery-title">🏢 รับเองที่สุขุมวิท 39 <span class="delivery-badge-free">ฟรี</span></div>
+                  <div class="delivery-desc">นัดรับที่ออฟฟิศ</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Pickup DateTime (option 4) -->
+            <div id="returnPickupBox" class="pickup-box hidden">
+              <div class="pickup-label">📅 เลือกวันรับ</div>
+              <div id="returnDateGrid" class="pickup-date-grid"></div>
+              <div class="pickup-label">⏰ เลือกเวลา</div>
+              <div class="pickup-time-list">
+                <label class="pickup-time-item" onclick="returnSelectTime(this, '09.00-12.00')">
+                  <input type="radio" name="returnPickupTime" value="09.00-12.00">
+                  <span>09.00-12.00</span>
+                </label>
+                <label class="pickup-time-item" onclick="returnSelectTime(this, '13.00-18.00')">
+                  <input type="radio" name="returnPickupTime" value="13.00-18.00">
+                  <span>13.00-18.00</span>
+                </label>
+                <label class="pickup-time-item" onclick="returnSelectTime(this, '19.00-24.00')">
+                  <input type="radio" name="returnPickupTime" value="19.00-24.00">
+                  <span>19.00-24.00 (วางไว้ให้หน้าห้อง)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recipient Info -->
+          <div class="section-box" style="margin-bottom:8px;">
+            <div class="section-title">📝 รายละเอียดผู้รับ</div>
+            <div class="return-form-group">
+              <label>ชื่อ-สกุลผู้รับ *</label>
+              <input type="text" id="returnRecipientName" placeholder="กรอกชื่อ-สกุล">
+            </div>
+            <div class="return-form-group">
+              <label>เบอร์โทรศัพท์ *</label>
+              <input type="tel" id="returnPhone" placeholder="0XX-XXX-XXXX">
+            </div>
+
+            <!-- Address section (for delivery 1,2) -->
+            <div id="returnAddressSection">
+              <div id="returnAddrChoice" class="return-addr-choice hidden">
+                <button class="selected" onclick="returnSetAddrChoice('last')">ที่อยู่เดิม</button>
+                <button onclick="returnSetAddrChoice('new')">กรอกใหม่</button>
+              </div>
+              <div id="returnLastAddrPreview" class="last-addr-preview hidden"></div>
+              <div id="returnNewAddrForm">
+                <div class="return-form-group">
+                  <label>ที่อยู่ (บ้านเลขที่ ซอย ถนน) *</label>
+                  <textarea id="returnAddress" placeholder="กรอกที่อยู่"></textarea>
+                </div>
+                <div class="return-form-row">
+                  <div class="return-form-group">
+                    <label>แขวง/ตำบล *</label>
+                    <input type="text" id="returnSubDistrict" placeholder="แขวง/ตำบล">
+                  </div>
+                  <div class="return-form-group">
+                    <label>เขต/อำเภอ *</label>
+                    <input type="text" id="returnDistrict" placeholder="เขต/อำเภอ">
+                  </div>
+                </div>
+                <div class="return-form-row">
+                  <div class="return-form-group">
+                    <label>จังหวัด *</label>
+                    <input type="text" id="returnProvince" placeholder="จังหวัด">
+                  </div>
+                  <div class="return-form-group">
+                    <label>รหัสไปรษณีย์ *</label>
+                    <input type="text" id="returnPostalCode" placeholder="10XXX" maxlength="5">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="return-submit-btn" onclick="submitReturnForm()" id="returnSubmitBtn">
+            ✅ ยืนยันขอรับบัตรคืน
+          </button>
+        </div>
+
+        <!-- Return: Success -->
+        <div id="returnSuccessSection" class="hidden">
+          <div class="return-success-box">
+            <div class="icon">🎉</div>
+            <div class="title">บันทึกสำเร็จ!</div>
+            <div class="desc">คำขอรับบัตรคืนของคุณถูกบันทึกแล้ว<br>ทีมงานจะดำเนินการตามช่องทางที่เลือก</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Tab: แจ้งยอดนอกรอบ (ระบบเดิม) ===== -->
+      <div id="tabExtra" class="tab-content">
+
       <!-- Bank Selection (>8 cards) -->
       <div id="bankSection" class="section-box hidden">
         <div class="section-title">🏦 เลือกธนาคาร (กดเลือกได้หลายธนาคาร)</div>
@@ -1037,6 +1810,37 @@
       
       <!-- Submit -->
       <button id="submitBtn" class="submit-btn hidden" onclick="submitForm()">✅ ยืนยันส่งข้อมูล</button>
+
+      </div><!-- /tabExtra -->
+
+      <!-- ===== Tab: Admin Panel ===== -->
+      <div id="tabAdmin" class="tab-content hidden">
+        <!-- Pending Requests -->
+        <div class="section-box admin-section">
+          <div class="admin-section-title">
+            📋 คำขอรออนุมัติ
+            <span class="count-badge" id="adminPendingCount">0</span>
+          </div>
+          <div class="admin-filter-row">
+            <button class="admin-filter-btn active" onclick="filterAdminRequests('all')">ทั้งหมด</button>
+            <button class="admin-filter-btn" onclick="filterAdminRequests('pending')">รอ</button>
+            <button class="admin-filter-btn" onclick="filterAdminRequests('approved')">อนุมัติ</button>
+            <button class="admin-filter-btn" onclick="filterAdminRequests('rejected')">ปฏิเสธ</button>
+          </div>
+          <div id="adminReqList" class="admin-req-list"></div>
+        </div>
+
+        <!-- User Management -->
+        <div class="section-box admin-section">
+          <div class="admin-section-title">👥 ค้นหาผู้ใช้</div>
+          <div class="admin-search-box">
+            <input type="text" id="adminUserSearch" placeholder="ค้นหา cust_id / ชื่อ / เบอร์" onkeypress="if(event.key==='Enter')searchAdminUsers()">
+            <button onclick="searchAdminUsers()">ค้นหา</button>
+          </div>
+          <div id="adminUserList"></div>
+        </div>
+      </div>
+
     </div>
   </div>
   
@@ -1100,16 +1904,20 @@
       CARD_THRESHOLD: 8,
       
       // ⭐ Allowed Banks (กรองแค่ธนาคารที่ต้องการ)
-      ALLOWED_BANKS: ['KCC', 'KFV', 'LOTUS', 'THE1', 'KBANK', 'SCB', 'TTB', 'UOB', 'BBL']
+      ALLOWED_BANKS: ['KCC', 'KFV', 'LOTUS', 'THE1', 'KBANK', 'SCB', 'TTB', 'UOB', 'BBL'],
+
+      // Admin
+      ADMIN_UID: 'Ua7d9f66661485ad713432e99d8d99e11'
     };
     // ═══════════════════════════════════════════════════════════════
-    
+
     // Supabase Client
     let sb;
-    
+
     // State
     let lineProfile = null;
     let customerInfo = null;
+    let currentTab = 'extra'; // default tab
     let allCards = [];
     let selectedBanks = [];
     let selectedCards = [];
@@ -1118,7 +1926,565 @@
     let cardTypes = []; // ⭐ ประเภทบัตรทั้งหมด (สำหรับ Modal เพิ่มบัตร)
     let allUnavailableCards = []; // ⭐ บัตรที่ available=false
     let showUnavailable = false;   // ⭐ toggle state
-    
+
+    // ============ TAB NAVIGATION ============
+    function switchTab(tab) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+      // Show selected tab
+      const tabId = 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+      const tabEl = document.getElementById(tabId);
+      if (tabEl) tabEl.classList.remove('hidden');
+      const btnEl = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+      if (btnEl) btnEl.classList.add('active');
+
+      currentTab = tab;
+
+      // Lazy load tab data
+      if (tab === 'status') loadCardStatus();
+      if (tab === 'return') loadReturnTab();
+      if (tab === 'admin') loadAdminData();
+    }
+
+    // ============ TAB 1: CARD STATUS ============
+    function loadCardStatus() {
+      const showAll = document.getElementById('statusShowAll').checked;
+      const availCards = allCards || [];
+      const unavailCards = allUnavailableCards || [];
+      const displayCards = showAll ? [...availCards, ...unavailCards] : availCards;
+
+      // Update count
+      document.getElementById('statusCardCount').textContent =
+        `💳 บัตรที่อยู่ ${availCards.length} / ทั้งหมด ${availCards.length + unavailCards.length}`;
+
+      // Render list
+      const html = displayCards.map(card => {
+        const isUnavail = !card.available;
+        const hasImg = card.image_url && card.image_url.startsWith('http');
+        const imgHtml = hasImg
+          ? `<img class="status-card-img" src="${card.image_url}" onerror="this.style.display='none'">`
+          : `<div class="status-card-img"></div>`;
+        const badgeCls = isUnavail ? 'unavailable' : 'available';
+        const badgeText = isUnavail ? 'ไม่อยู่' : 'อยู่กับทีมงาน';
+
+        return `<div class="status-card-item ${isUnavail ? 'unavail' : ''}" onclick="showCardDetail('${card.card_id}')">
+          ${imgHtml}
+          <div class="status-card-info">
+            <div class="status-card-name">${card.card_type} ${card.last4}</div>
+            <div class="status-card-sub">${truncate(card.full_name, 20)}</div>
+          </div>
+          <span class="status-badge ${badgeCls}">${badgeText}</span>
+        </div>`;
+      }).join('');
+
+      document.getElementById('statusCardList').innerHTML = html || '<div class="tab-placeholder">ไม่มีบัตร</div>';
+      document.getElementById('cardDetailPanel').innerHTML = '';
+    }
+
+    function showCardDetail(cardId) {
+      const allCardsList = [...(allCards || []), ...(allUnavailableCards || [])];
+      const card = allCardsList.find(c => c.card_id === cardId);
+      if (!card) return;
+
+      const isUnavail = !card.available;
+      const hasImg = card.image_url && card.image_url.startsWith('http');
+      const imgHtml = hasImg
+        ? `<img class="detail-img" src="${card.image_url}" onerror="this.style.display='none'">`
+        : `<div class="detail-img"></div>`;
+      const statusText = isUnavail ? '❌ ไม่อยู่กับทีมงาน' : '✅ อยู่กับทีมงาน';
+      const toggleText = isUnavail ? 'ขอนำบัตรกลับมาฝาก' : 'ขอรับบัตรคืน';
+
+      const html = `<div class="card-detail-panel">
+        <div class="detail-header">
+          ${imgHtml}
+          <div>
+            <div class="detail-title">${card.card_type}</div>
+            <div class="detail-sub">${card.last4} | ${card.full_name || '-'}</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Card ID</span>
+          <span class="detail-value">${card.card_id}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ธนาคาร</span>
+          <span class="detail-value">${card.bank || '-'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">สถานะ</span>
+          <span class="detail-value">${statusText}</span>
+        </div>
+        <div class="detail-actions">
+          <button class="detail-btn detail-btn-close" onclick="document.getElementById('cardDetailPanel').innerHTML=''">ปิด</button>
+          <button class="detail-btn detail-btn-primary" onclick="submitCardRequest('${card.card_id}', '${isUnavail ? 'request_return' : 'request_available'}')">${toggleText}</button>
+        </div>
+        <div class="pending-note" style="display:none;" id="pendingNote_${card.card_id}">⏳ คำขอถูกส่งแล้ว รอ Admin อนุมัติ</div>
+      </div>`;
+
+      document.getElementById('cardDetailPanel').innerHTML = html;
+      document.getElementById('cardDetailPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function submitCardRequest(cardId, requestType) {
+      try {
+        const allCardsList = [...(allCards || []), ...(allUnavailableCards || [])];
+        const card = allCardsList.find(c => c.card_id === cardId);
+        if (!card) return;
+
+        const body = {
+          action: 'submitCardRequest',
+          custId: customerInfo.cust_id,
+          cardId: cardId,
+          requestType: requestType,
+          currentAvailable: card.available,
+          lineUserId: lineProfile.userId,
+          displayName: lineProfile.displayName
+        };
+
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(body)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          const noteEl = document.getElementById('pendingNote_' + cardId);
+          if (noteEl) noteEl.style.display = '';
+          // Disable the button
+          const btn = document.querySelector('.detail-btn-primary');
+          if (btn) { btn.disabled = true; btn.textContent = '✅ ส่งคำขอแล้ว'; }
+        } else {
+          alert('เกิดข้อผิดพลาด: ' + (result.error || result.message));
+        }
+      } catch (e) {
+        alert('เกิดข้อผิดพลาด: ' + e.message);
+      }
+    }
+
+    // ============ TAB 2: RETURN CARD ============
+    let returnDeliveryOption = 1;
+    let returnAddrChoice = 'new';
+    let returnLastAddress = null;
+    let returnPickupDate = null;
+    let returnPickupTime = null;
+
+    function loadReturnTab() {
+      // Render available cards for return
+      const availCards = allCards || [];
+      const container = document.getElementById('returnCardList');
+      container.innerHTML = availCards.map(card =>
+        `<label class="return-card-item" onclick="this.classList.toggle('selected')">
+          <input type="checkbox" value="${card.card_id}"
+                 data-display="${card.card_type} ${card.last4} ${card.full_name || ''}">
+          <div class="rc-info">
+            <div class="rc-type">${card.card_type} ${card.last4}</div>
+            <div class="rc-name">${truncate(card.full_name, 20)}</div>
+          </div>
+        </label>`
+      ).join('') || '<div class="tab-placeholder">ไม่มีบัตรที่อยู่กับทีมงาน</div>';
+
+      // Prefill name & phone
+      if (customerInfo) {
+        document.getElementById('returnRecipientName').value = customerInfo.full_name || customerInfo.name_on_card || '';
+        document.getElementById('returnPhone').value = customerInfo.phone || '';
+      }
+
+      // Load last address from Supabase
+      loadReturnLastAddress();
+
+      // Render pickup dates
+      renderReturnDateGrid();
+
+      // Reset state
+      returnDeliveryOption = 1;
+      returnAddrChoice = 'new';
+      returnPickupDate = null;
+      returnPickupTime = null;
+      document.getElementById('returnPickupBox').classList.add('hidden');
+      updateReturnAddressVisibility();
+    }
+
+    async function loadReturnLastAddress() {
+      try {
+        const { data } = await sb
+          .from('return_requests')
+          .select('*')
+          .eq('cust_id', customerInfo.cust_id)
+          .order('requested_at', { ascending: false })
+          .limit(1);
+
+        if (data && data.length > 0 && data[0].address) {
+          returnLastAddress = data[0];
+          // Show address choice buttons
+          document.getElementById('returnAddrChoice').classList.remove('hidden');
+          document.getElementById('returnLastAddrPreview').classList.remove('hidden');
+          document.getElementById('returnLastAddrPreview').textContent =
+            `📍 ${data[0].address} ${data[0].sub_district || ''} ${data[0].district || ''} ${data[0].province || ''} ${data[0].postal_code || ''}`;
+          // Prefill name from last request
+          if (data[0].recipient_name) {
+            document.getElementById('returnRecipientName').value = data[0].recipient_name;
+          }
+          if (data[0].phone) {
+            document.getElementById('returnPhone').value = data[0].phone;
+          }
+          returnSetAddrChoice('last');
+        }
+      } catch (e) {
+        console.error('loadReturnLastAddress error:', e);
+      }
+    }
+
+    function returnSelectDelivery(el, option) {
+      document.querySelectorAll('#tabReturn .delivery-item').forEach(i => i.classList.remove('selected'));
+      el.classList.add('selected');
+      el.querySelector('input').checked = true;
+      returnDeliveryOption = option;
+      document.getElementById('returnPickupBox').classList.toggle('hidden', option !== 4);
+      updateReturnAddressVisibility();
+    }
+
+    function updateReturnAddressVisibility() {
+      const needAddr = (returnDeliveryOption === 1 || returnDeliveryOption === 2);
+      document.getElementById('returnAddressSection').style.display = needAddr ? '' : 'none';
+    }
+
+    function returnSetAddrChoice(choice) {
+      returnAddrChoice = choice;
+      document.querySelectorAll('#returnAddrChoice button').forEach(b => b.classList.remove('selected'));
+      if (choice === 'last') {
+        document.querySelectorAll('#returnAddrChoice button')[0].classList.add('selected');
+        document.getElementById('returnNewAddrForm').style.display = 'none';
+        document.getElementById('returnLastAddrPreview').style.display = '';
+      } else {
+        document.querySelectorAll('#returnAddrChoice button')[1].classList.add('selected');
+        document.getElementById('returnNewAddrForm').style.display = '';
+        document.getElementById('returnLastAddrPreview').style.display = 'none';
+      }
+    }
+
+    function returnToggleSelectAll() {
+      const cbs = document.querySelectorAll('#returnCardList input[type="checkbox"]');
+      const allChecked = Array.from(cbs).every(cb => cb.checked);
+      cbs.forEach(cb => {
+        cb.checked = !allChecked;
+        cb.closest('.return-card-item').classList.toggle('selected', !allChecked);
+      });
+      document.getElementById('returnSelectAllText').textContent = allChecked ? 'เลือกทั้งหมด' : 'ยกเลิกทั้งหมด';
+    }
+
+    function renderReturnDateGrid() {
+      const container = document.getElementById('returnDateGrid');
+      if (!container) return;
+      const dayNames = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+      const today = new Date();
+      container.innerHTML = '';
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const dayName = dayNames[d.getDay()];
+        const dateNum = d.getDate();
+        const month = d.getMonth() + 1;
+        const fullStr = dateNum + '/' + month + '/' + d.getFullYear();
+
+        const div = document.createElement('div');
+        div.className = 'pickup-date-item';
+        div.dataset.date = fullStr;
+        div.innerHTML = `<div class="pd-day">${dayName}</div><div class="pd-num">${i === 0 ? dateNum + '/' + month : dateNum}</div>`;
+        div.onclick = function() {
+          document.querySelectorAll('.pickup-date-item').forEach(el => el.classList.remove('selected'));
+          this.classList.add('selected');
+          returnPickupDate = fullStr;
+        };
+        container.appendChild(div);
+      }
+    }
+
+    function returnSelectTime(el, timeStr) {
+      document.querySelectorAll('.pickup-time-item').forEach(i => i.classList.remove('selected'));
+      el.classList.add('selected');
+      el.querySelector('input').checked = true;
+      returnPickupTime = timeStr;
+    }
+
+    async function submitReturnForm() {
+      // Validate cards
+      const checkedBoxes = document.querySelectorAll('#returnCardList input:checked');
+      const selectedCards = Array.from(checkedBoxes).map(cb => cb.dataset.display);
+      const selectedCardIds = Array.from(checkedBoxes).map(cb => cb.value);
+      if (selectedCards.length === 0) { alert('กรุณาเลือกบัตรอย่างน้อย 1 ใบ'); return; }
+
+      const recipientName = document.getElementById('returnRecipientName').value.trim();
+      const phone = document.getElementById('returnPhone').value.trim();
+      if (!recipientName) { alert('กรุณากรอกชื่อ-สกุลผู้รับ'); return; }
+      if (!phone) { alert('กรุณากรอกเบอร์โทรศัพท์'); return; }
+
+      // Validate pickup for option 4
+      if (returnDeliveryOption === 4) {
+        if (!returnPickupDate) { alert('กรุณาเลือกวันรับ'); return; }
+        if (!returnPickupTime) { alert('กรุณาเลือกเวลารับ'); return; }
+      }
+
+      // Get address
+      let address = '', subDistrict = '', district = '', province = '', postalCode = '';
+      const needAddr = (returnDeliveryOption === 1 || returnDeliveryOption === 2);
+      if (needAddr) {
+        if (returnAddrChoice === 'last' && returnLastAddress) {
+          address = returnLastAddress.address;
+          subDistrict = returnLastAddress.sub_district;
+          district = returnLastAddress.district;
+          province = returnLastAddress.province;
+          postalCode = returnLastAddress.postal_code;
+        } else {
+          address = document.getElementById('returnAddress').value.trim();
+          subDistrict = document.getElementById('returnSubDistrict').value.trim();
+          district = document.getElementById('returnDistrict').value.trim();
+          province = document.getElementById('returnProvince').value.trim();
+          postalCode = document.getElementById('returnPostalCode').value.trim();
+          if (!address || !subDistrict || !district || !province || !postalCode) {
+            alert('กรุณากรอกที่อยู่ให้ครบถ้วน'); return;
+          }
+        }
+      }
+
+      const btn = document.getElementById('returnSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ กำลังบันทึก...';
+
+      try {
+        const deliveryMethod = document.querySelector('input[name="returnDelivery"]:checked').value;
+        const body = {
+          action: 'submitReturnRequest',
+          custId: customerInfo.cust_id,
+          lineUserId: lineProfile.userId,
+          displayName: lineProfile.displayName,
+          selectedCards, selectedCardIds,
+          deliveryMethod,
+          recipientName, phone,
+          address, subDistrict, district, province, postalCode,
+          pickupDate: returnDeliveryOption === 4 ? returnPickupDate : null,
+          pickupTime: returnDeliveryOption === 4 ? returnPickupTime : null
+        };
+
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(body)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          document.getElementById('returnFormSection').classList.add('hidden');
+          document.getElementById('returnSuccessSection').classList.remove('hidden');
+          // Remove returned cards from allCards
+          allCards = allCards.filter(c => !selectedCardIds.includes(c.card_id));
+          updateCardCount();
+        } else {
+          alert('เกิดข้อผิดพลาด: ' + (result.error || result.message));
+          btn.disabled = false;
+          btn.textContent = '✅ ยืนยันขอรับบัตรคืน';
+        }
+      } catch (e) {
+        alert('เกิดข้อผิดพลาด: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = '✅ ยืนยันขอรับบัตรคืน';
+      }
+    }
+
+    // ============ TAB 4: ADMIN PANEL ============
+    let adminRequests = [];
+    let adminFilter = 'all';
+
+    async function loadAdminData() {
+      if (!lineProfile || lineProfile.userId !== CONFIG.ADMIN_UID) return;
+
+      try {
+        // Load card_requests
+        const { data: cardReqs } = await sb
+          .from('card_requests')
+          .select('*')
+          .order('requested_at', { ascending: false });
+
+        // Load return_requests (recent)
+        const { data: returnReqs } = await sb
+          .from('return_requests')
+          .select('*')
+          .order('requested_at', { ascending: false })
+          .limit(50);
+
+        adminRequests = [
+          ...((cardReqs || []).map(r => ({ ...r, _type: 'card' }))),
+          ...((returnReqs || []).filter(r => r.status === 'pending').map(r => ({ ...r, _type: 'return' })))
+        ].sort((a, b) => (b.requested_at || '').localeCompare(a.requested_at || ''));
+
+        renderAdminRequests();
+      } catch (e) {
+        console.error('loadAdminData error:', e);
+      }
+    }
+
+    function filterAdminRequests(filter) {
+      adminFilter = filter;
+      document.querySelectorAll('.admin-filter-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderAdminRequests();
+    }
+
+    function renderAdminRequests() {
+      const filtered = adminFilter === 'all'
+        ? adminRequests
+        : adminRequests.filter(r => r.status === adminFilter);
+
+      const pendingCount = adminRequests.filter(r => r.status === 'pending').length;
+      document.getElementById('adminPendingCount').textContent = pendingCount;
+
+      const container = document.getElementById('adminReqList');
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="tab-placeholder">ไม่มีคำขอ</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(req => {
+        const isCard = req._type === 'card';
+        const typeClass = isCard ? 'card-req' : 'return-req';
+        const typeText = isCard ? 'เปลี่ยนสถานะ' : 'คืนบัตร';
+        const isPending = req.status === 'pending';
+
+        let detail = '';
+        if (isCard) {
+          detail = `💳 ${req.card_id || '-'}<br>${req.request_type || '-'}`;
+        } else {
+          detail = `💳 ${(req.cards || '').replace(/\n/g, ', ')}<br>🚚 ${req.delivery_method || '-'}`;
+        }
+
+        const statusBadge = req.status === 'approved'
+          ? '<span style="color:#34d399;font-size:0.6rem;">✅ อนุมัติแล้ว</span>'
+          : req.status === 'rejected'
+          ? '<span style="color:#f87171;font-size:0.6rem;">❌ ปฏิเสธ</span>'
+          : '';
+
+        const actionsHtml = isPending && isCard
+          ? `<div class="admin-req-actions">
+              <button class="admin-btn-reject" onclick="adminRejectRequest('${req.request_id}', 'card_request')">❌ ปฏิเสธ</button>
+              <button class="admin-btn-approve" onclick="adminApproveRequest('${req.request_id}', 'card_request')">✅ อนุมัติ</button>
+            </div>`
+          : statusBadge;
+
+        return `<div class="admin-req-item">
+          <div class="admin-req-header">
+            <span class="admin-req-cust">${req.cust_id || '-'}</span>
+            <span class="admin-req-type ${typeClass}">${typeText}</span>
+          </div>
+          <div class="admin-req-detail">${detail}</div>
+          ${actionsHtml}
+        </div>`;
+      }).join('');
+    }
+
+    async function adminApproveRequest(requestId, requestType) {
+      if (!confirm('อนุมัติคำขอนี้?')) return;
+      try {
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'approveRequest',
+            requestType: requestType,
+            requestId: requestId,
+            adminUserId: lineProfile.userId,
+            note: ''
+          })
+        });
+        const result = await res.json();
+        if (result.success) {
+          // Update local state
+          const req = adminRequests.find(r => r.request_id === requestId);
+          if (req) req.status = 'approved';
+          renderAdminRequests();
+        } else {
+          alert('Error: ' + (result.error || 'Unknown'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    async function adminRejectRequest(requestId, requestType) {
+      const note = prompt('เหตุผลที่ปฏิเสธ (ไม่บังคับ):') || '';
+      try {
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'rejectRequest',
+            requestType: requestType,
+            requestId: requestId,
+            adminUserId: lineProfile.userId,
+            note: note
+          })
+        });
+        const result = await res.json();
+        if (result.success) {
+          const req = adminRequests.find(r => r.request_id === requestId);
+          if (req) req.status = 'rejected';
+          renderAdminRequests();
+        } else {
+          alert('Error: ' + (result.error || 'Unknown'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    async function searchAdminUsers() {
+      const query = document.getElementById('adminUserSearch').value.trim().toLowerCase();
+      if (!query) return;
+
+      const container = document.getElementById('adminUserList');
+      container.innerHTML = '<div class="tab-placeholder">กำลังค้นหา...</div>';
+
+      try {
+        // Search from Supabase users
+        const { data: users } = await sb
+          .from('users')
+          .select('*');
+
+        const filtered = (users || []).filter(u =>
+          (u.cust_id || '').toLowerCase().includes(query) ||
+          (u.full_name || '').toLowerCase().includes(query) ||
+          (u.display_name || '').toLowerCase().includes(query) ||
+          (u.phone || '').includes(query)
+        ).slice(0, 20);
+
+        if (filtered.length === 0) {
+          container.innerHTML = '<div class="tab-placeholder">ไม่พบผู้ใช้</div>';
+          return;
+        }
+
+        // Count cards per user
+        const { data: allCardsData } = await sb.from('cards').select('cust_id');
+        const cardCounts = {};
+        (allCardsData || []).forEach(c => {
+          cardCounts[c.cust_id] = (cardCounts[c.cust_id] || 0) + 1;
+        });
+
+        container.innerHTML = filtered.map(u =>
+          `<div class="admin-user-item">
+            <div>
+              <div class="admin-user-info">${u.cust_id} | ${u.display_name || '-'}</div>
+              <div class="admin-user-sub">${u.full_name || '-'} | ${u.phone || '-'}</div>
+            </div>
+            <div class="admin-user-cards">${cardCounts[u.cust_id] || 0} บัตร</div>
+          </div>`
+        ).join('');
+      } catch (e) {
+        container.innerHTML = '<div class="tab-placeholder">เกิดข้อผิดพลาด</div>';
+      }
+    }
+
     // ============ INIT ============
     async function init() {
       const startTime = performance.now();
@@ -1196,6 +2562,12 @@
         // Render UI
         renderProfile();
         setDefaultDate();
+
+        // ⭐ Show tab bar + admin tab
+        document.getElementById('tabBar').classList.remove('hidden');
+        if (lineProfile.userId === CONFIG.ADMIN_UID) {
+          document.getElementById('adminTab').style.display = '';
+        }
         
         // Check if need bank selection
         if (allCards.length > CONFIG.CARD_THRESHOLD) {
