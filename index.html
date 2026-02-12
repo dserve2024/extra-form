@@ -31,70 +31,84 @@
     
     /* Profile */
     .profile-box {
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.12);
       backdrop-filter: blur(10px);
       border-radius: 12px;
-      padding: 10px 12px;
+      padding: 12px;
       margin-bottom: 10px;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.15);
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    
+
     .profile-img {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       object-fit: cover;
       border: 2px solid rgba(255,255,255,0.3);
       flex-shrink: 0;
     }
-    
+
     .profile-info { flex: 1; min-width: 0; }
-    
+
     .profile-row1 {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #fff;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 0.3px;
     }
-    
+
     .profile-row2 {
       font-size: 0.7rem;
-      color: rgba(255,255,255,0.8);
+      color: rgba(255,255,255,0.75);
       margin-top: 2px;
     }
 
     .profile-row3Phone {
-      font-size: 0.7rem;
-      color: rgba(255,255,255,0.7);
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 2px;
+    }
+
+    .profile-row4 {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.5);
       margin-top: 2px;
     }
 
     .profile-bank {
       flex-shrink: 0;
       text-align: right;
-      font-size: 0.7rem;
-      min-width: 100px;
+      min-width: 110px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,0.1);
     }
     .profile-bank-label {
-      color: rgba(255,255,255,0.6);
-      font-size: 0.6rem;
-      margin-bottom: 2px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.55rem;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .profile-bank-value {
       color: #4ecdc4;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.75rem;
+      line-height: 1.3;
     }
     .profile-bank-edit {
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.3);
-      color: #fff;
+      background: rgba(78,205,196,0.2);
+      border: 1px solid rgba(78,205,196,0.3);
+      color: #4ecdc4;
       border-radius: 6px;
-      padding: 2px 8px;
+      padding: 3px 10px;
       font-size: 0.6rem;
-      margin-top: 3px;
+      margin-top: 5px;
+      font-weight: 600;
       cursor: pointer;
     }
 
@@ -1581,22 +1595,60 @@
       cursor: pointer;
       font-family: 'Prompt', sans-serif;
     }
+    .admin-user-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
     .admin-user-item {
       background: rgba(255,255,255,0.08);
-      border-radius: 8px;
-      padding: 8px 10px;
-      margin-bottom: 4px;
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
+      text-align: center;
+      gap: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.2s;
+    }
+    .admin-user-item:active {
+      background: rgba(255,255,255,0.15);
+    }
+    .admin-user-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4ecdc4, #44a08d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .admin-user-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
     }
     .admin-user-info {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       color: #fff;
+      font-weight: 600;
     }
     .admin-user-sub {
       font-size: 0.6rem;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.6);
+      line-height: 1.3;
+    }
+    .admin-user-bank-summary {
+      font-size: 0.55rem;
+      color: #4ecdc4;
+      margin-top: 2px;
     }
     .admin-user-cards {
       font-size: 0.6rem;
@@ -1720,17 +1772,15 @@
     <div id="mainContent">
       <!-- Profile -->
       <div id="profileSection" class="profile-box hidden">
-        <img id="profileImg" class="profile-img" src="" onerror="this.src='https://via.placeholder.com/44/666/fff?text=👤'">
+        <img id="profileImg" class="profile-img" src="" onerror="this.src='https://via.placeholder.com/48/666/fff?text=👤'">
         <div class="profile-info">
           <div class="profile-row1" id="profileRow1">-</div>
           <div class="profile-row2" id="profileRow2">-</div>
-          <div class="profile-row3" id="profileRow3Phone"></div>
-          <div class="profile-row4" id="profileRow3">
-            <span id="cardCount"></span>
-          </div>
+          <div class="profile-row3Phone" id="profileRow3Phone"></div>
+          <div class="profile-row4" id="profileRow3"><span id="cardCount"></span></div>
         </div>
         <div class="profile-bank" id="profileBankSection">
-          <div class="profile-bank-label">บัญชีสำหรับรับเงิน</div>
+          <div class="profile-bank-label">บัญชีรับเงิน</div>
           <div class="profile-bank-value" id="profileBankValue">-</div>
           <button class="profile-bank-edit" onclick="openBankAccountModal()">แก้ไข</button>
         </div>
@@ -2193,9 +2243,15 @@
 
       let html = displayCards.map(card => {
         const isUnavail = !card.available;
-        const hasImage = card.image_url && card.image_url.startsWith('http');
+        // ⭐ Fallback: ถ้า card ไม่มี image_url ให้ดึงจาก cardTypes
+        let imgUrl = card.image_url;
+        if (!imgUrl || !imgUrl.startsWith('http')) {
+          const ct = cardTypes.find(t => t.card_name === card.card_type);
+          if (ct && ct.image_url && ct.image_url.startsWith('http')) imgUrl = ct.image_url;
+        }
+        const hasImage = imgUrl && imgUrl.startsWith('http');
         const imgHtml = hasImage
-          ? `<img src="${card.image_url}" class="card-bg-img" onerror="this.style.display='none'">`
+          ? `<img src="${imgUrl}" class="card-bg-img" onerror="this.style.display='none'">`
           : '';
         const noImageClass = hasImage ? '' : 'no-image';
         const unavailBadge = isUnavail ? '<span class="unavail-badge">🚨ไม่อยู่</span>' : '';
@@ -2222,7 +2278,6 @@
       </div>`;
 
       document.getElementById('statusCardGrid').innerHTML = html || '<div class="tab-placeholder">ไม่มีบัตร</div>';
-      document.getElementById('cardDetailPanel').innerHTML = '';
     }
 
     function openAddCardRequestModal() {
@@ -2933,20 +2988,25 @@
         return;
       }
 
-      container.innerHTML = users.map(u => {
+      // Sort by cust_id ascending
+      const sorted = [...users].sort((a, b) => (a.cust_id || '').localeCompare(b.cust_id || ''));
+
+      const items = sorted.map(u => {
         const banks = bankSummary[u.cust_id] || {};
         const bankText = Object.entries(banks).map(([b, v]) => `${b}(${v.avail}/${v.total})`).join(' ');
         const totalCards = Object.values(banks).reduce((s, v) => s + v.total, 0);
+        const initial = (u.display_name || u.full_name || u.cust_id || '?').charAt(0).toUpperCase();
 
-        return `<div class="admin-user-item" style="cursor:pointer;" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${(u.display_name || u.full_name || '-').replace(/'/g, "\\'")}')">
-          <div>
-            <div class="admin-user-info">${u.cust_id} | ${u.display_name || '-'}</div>
-            <div class="admin-user-sub">${u.full_name || '-'} | ${u.phone || '-'}</div>
-            <div class="admin-user-bank-summary">${bankText || '-'}</div>
-          </div>
-          <div class="admin-user-cards">${totalCards} บัตร ▶</div>
+        return `<div class="admin-user-item" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${(u.display_name || u.full_name || '-').replace(/'/g, "\\'")}')">
+          <div class="admin-user-avatar">${initial}</div>
+          <div class="admin-user-info">${u.cust_id || '-'}</div>
+          <div class="admin-user-sub">${u.display_name || u.full_name || '-'}</div>
+          <div class="admin-user-bank-summary">${bankText || '-'}</div>
+          <div class="admin-user-cards">${totalCards} บัตร</div>
         </div>`;
       }).join('');
+
+      container.innerHTML = `<div class="admin-user-grid">${items}</div>`;
     }
 
     async function searchAdminUsers() {
@@ -3141,6 +3201,9 @@
 
         // 3. Update Supabase card_types immediately
         await sb.from('card_types').update({ image_url: imageUrl }).eq('card_name', cardName);
+
+        // 3.5 ⭐ Also update ALL cards with this card_type (so images show immediately)
+        await sb.from('cards').update({ image_url: imageUrl }).eq('card_type', cardName);
 
         // 4. Update GAS (Google Sheets) for persistence through sync
         fetch(CONFIG.APPS_SCRIPT_URL, {
@@ -3366,15 +3429,16 @@
       document.getElementById('profileRow1').textContent = `${customerInfo.cust_id} | ${lineProfile.displayName}`;
       document.getElementById('profileRow2').textContent = customerInfo.full_name || customerInfo.name_on_card || '-';
       // Phone
-      const phone = customerInfo.phone || '-';
-      document.getElementById('profileRow3Phone').textContent = phone !== '-' ? `📱 ${phone}` : '';
+      const phone = customerInfo.phone || '';
+      document.getElementById('profileRow3Phone').textContent = phone ? `📱 ${phone}` : '';
       // Bank account
       const bankName = customerInfo.bank_name || '';
-      const bankAccount = customerInfo.bank_account || '';
-      if (bankName || bankAccount) {
-        document.getElementById('profileBankValue').textContent = `${bankName || 'SCB'} ${bankAccount}`;
+      const bankAccount = String(customerInfo.bank_account || '').replace(/^'/, '');
+      const bankEl = document.getElementById('profileBankValue');
+      if (bankAccount) {
+        bankEl.innerHTML = `<div style="font-size:0.65rem;color:#4ecdc4;">${bankName || 'SCB'}</div><div style="font-size:0.8rem;font-weight:700;color:#fff;margin-top:1px;">${bankAccount}</div>`;
       } else {
-        document.getElementById('profileBankValue').textContent = 'ยังไม่ได้ตั้งค่า';
+        bankEl.innerHTML = '<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);">ยังไม่ได้ตั้งค่า</div>';
       }
       document.getElementById('profileSection').classList.remove('hidden');
       updateCardCount();
