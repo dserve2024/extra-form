@@ -8,6 +8,8 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- QR Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -1596,20 +1598,19 @@
       font-family: 'Prompt', sans-serif;
     }
     .admin-user-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      display: flex;
+      flex-direction: column;
       gap: 6px;
     }
     .admin-user-item {
       background: rgba(255,255,255,0.08);
       border-radius: 10px;
-      padding: 10px;
+      padding: 10px 12px;
       cursor: pointer;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      text-align: center;
-      gap: 6px;
+      gap: 10px;
       border: 1px solid rgba(255,255,255,0.1);
       transition: all 0.2s;
     }
@@ -1617,8 +1618,8 @@
       background: rgba(255,255,255,0.15);
     }
     .admin-user-avatar {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       background: linear-gradient(135deg, #4ecdc4, #44a08d);
       display: flex;
@@ -1628,6 +1629,7 @@
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
+      overflow: hidden;
     }
     .admin-user-avatar img {
       width: 100%;
@@ -1635,25 +1637,63 @@
       border-radius: 50%;
       object-fit: cover;
     }
-    .admin-user-info {
+    .admin-user-detail {
+      flex: 1;
+      min-width: 0;
+    }
+    .admin-user-name {
       font-size: 0.75rem;
       color: #fff;
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .admin-user-sub {
       font-size: 0.6rem;
-      color: rgba(255,255,255,0.6);
-      line-height: 1.3;
+      color: rgba(255,255,255,0.55);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .admin-user-bank-summary {
+    .admin-user-bank-row {
       font-size: 0.55rem;
-      color: #4ecdc4;
-      margin-top: 2px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 3px;
+      line-height: 1.4;
     }
-    .admin-user-cards {
-      font-size: 0.6rem;
-      color: #00d084;
+    .admin-user-bank-row .bank-tag {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin: 1px 2px 1px 0;
+      font-size: 0.5rem;
       font-weight: 600;
+    }
+    .admin-user-bank-row .bank-tag.has-cards {
+      background: rgba(78,205,196,0.15);
+      color: #4ecdc4;
+    }
+    .admin-user-bank-row .bank-tag.no-cards {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.3);
+      text-decoration: line-through;
+    }
+    .admin-user-stats {
+      flex-shrink: 0;
+      text-align: right;
+    }
+    .admin-user-avail-count {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #00d084;
+      line-height: 1;
+    }
+    .admin-user-avail-label {
+      font-size: 0.45rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 2px;
     }
     .admin-filter-row {
       display: flex;
@@ -1712,12 +1752,41 @@
     }
     .admin-subtab-content.hidden { display: none !important; }
 
-    /* Admin: User item with bank summary */
-    .admin-user-bank-summary {
-      font-size: 0.55rem;
-      color: rgba(255,255,255,0.4);
-      margin-top: 2px;
+    /* QR Scanner */
+    .qr-scan-btn {
+      padding: 8px 10px;
+      background: rgba(78,205,196,0.3);
+      color: #4ecdc4;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      flex-shrink: 0;
     }
+    #qrScannerModal .modal-box { max-width: 360px; }
+    #qrReaderEl { width: 100%; border-radius: 8px; overflow: hidden; }
+    .scan-result-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 14px;
+      margin: 10px 0;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .scan-result-card .card-name { font-size: 0.85rem; color: #fff; font-weight: 600; }
+    .scan-result-card .card-detail { font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 4px; }
+    .scan-action-btns { display: flex; gap: 8px; margin-top: 12px; }
+    .scan-action-btns button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+    }
+    .btn-receive { background: rgba(0,208,132,0.3); color: #00d084; }
+    .btn-return { background: rgba(239,68,68,0.3); color: #f87171; }
 
     /* Admin: Card image management - no-image badge */
     .card-btn .no-image-badge {
@@ -2049,6 +2118,7 @@
           <div class="admin-search-box">
             <input type="text" id="adminUserSearch" placeholder="ค้นหา cust_id / ชื่อ / เบอร์" onkeypress="if(event.key==='Enter')searchAdminUsers()">
             <button onclick="searchAdminUsers()">ค้นหา</button>
+            <button class="qr-scan-btn" onclick="openQRScanner()">📷</button>
           </div>
           <div id="adminUserList"></div>
         </div>
@@ -2076,6 +2146,37 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- QR Scanner Modal -->
+  <div id="qrScannerModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">📷 สแกน QR บัตร</div>
+      <div class="modal-body">
+        <div id="qrReaderEl"></div>
+        <div id="qrScanStatus" style="text-align:center;color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:8px;">เล็งกล้องไปที่ QR Code ของบัตร</div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="closeQRScanner()">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scan Card Result Modal -->
+  <div id="scanCardModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">💳 ข้อมูลบัตร</div>
+      <div class="modal-body">
+        <div id="scanCardInfo" class="scan-result-card"></div>
+        <div class="scan-action-btns">
+          <button class="btn-receive" onclick="scanCardAction('receive')">✅ รับเข้า</button>
+          <button class="btn-return" onclick="scanCardAction('return')">🛑 ส่งคืน</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('scanCardModal').classList.add('hidden')">ยกเลิก</button>
+      </div>
     </div>
   </div>
 
@@ -2988,21 +3089,39 @@
         return;
       }
 
-      // Sort by cust_id ascending
-      const sorted = [...users].sort((a, b) => (a.cust_id || '').localeCompare(b.cust_id || ''));
+      // Sort by cust_id ascending (numeric-aware)
+      const sorted = [...users].sort((a, b) => {
+        const aId = (a.cust_id || '').replace(/\D/g, '');
+        const bId = (b.cust_id || '').replace(/\D/g, '');
+        return (parseInt(aId) || 0) - (parseInt(bId) || 0);
+      });
 
       const items = sorted.map(u => {
         const banks = bankSummary[u.cust_id] || {};
-        const bankText = Object.entries(banks).map(([b, v]) => `${b}(${v.avail}/${v.total})`).join(' ');
-        const totalCards = Object.values(banks).reduce((s, v) => s + v.total, 0);
+        const availCount = Object.values(banks).reduce((s, v) => s + v.avail, 0);
+        const totalCount = Object.values(banks).reduce((s, v) => s + v.total, 0);
         const initial = (u.display_name || u.full_name || u.cust_id || '?').charAt(0).toUpperCase();
+        const profileImg = u.profile_url && u.profile_url.startsWith('http')
+          ? `<img src="${u.profile_url}" onerror="this.parentElement.innerHTML='${initial}'">`
+          : initial;
+
+        // Bank tags with avail/total
+        const bankTags = Object.entries(banks).map(([b, v]) => {
+          const cls = v.avail > 0 ? 'has-cards' : 'no-cards';
+          return `<span class="bank-tag ${cls}">${b} ${v.avail}/${v.total}</span>`;
+        }).join('');
 
         return `<div class="admin-user-item" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${(u.display_name || u.full_name || '-').replace(/'/g, "\\'")}')">
-          <div class="admin-user-avatar">${initial}</div>
-          <div class="admin-user-info">${u.cust_id || '-'}</div>
-          <div class="admin-user-sub">${u.display_name || u.full_name || '-'}</div>
-          <div class="admin-user-bank-summary">${bankText || '-'}</div>
-          <div class="admin-user-cards">${totalCards} บัตร</div>
+          <div class="admin-user-avatar">${profileImg}</div>
+          <div class="admin-user-detail">
+            <div class="admin-user-name">${u.cust_id || '-'} | ${u.display_name || u.full_name || '-'}</div>
+            <div class="admin-user-sub">${u.full_name || u.name_on_card || ''}</div>
+            <div class="admin-user-bank-row">${bankTags || '<span style="color:rgba(255,255,255,0.3)">ไม่มีบัตร</span>'}</div>
+          </div>
+          <div class="admin-user-stats">
+            <div class="admin-user-avail-count">${availCount}</div>
+            <div class="admin-user-avail-label">อยู่ / ${totalCount}</div>
+          </div>
         </div>`;
       }).join('');
 
@@ -3042,6 +3161,125 @@
           (u.phone || '').includes(query)
         );
         renderAdminUserList(filtered, adminAllUsers.bankSummary);
+      }
+    }
+
+    // ⭐ QR Scanner
+    let qrScanner = null;
+    let scanCardData = null;
+
+    function openQRScanner() {
+      document.getElementById('qrScannerModal').classList.remove('hidden');
+      document.getElementById('qrScanStatus').textContent = 'เล็งกล้องไปที่ QR Code ของบัตร';
+      try {
+        qrScanner = new Html5Qrcode('qrReaderEl');
+        qrScanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          onQRCodeScanned,
+          () => {}
+        ).catch(err => {
+          document.getElementById('qrScanStatus').textContent = 'ไม่สามารถเปิดกล้องได้: ' + err;
+        });
+      } catch (e) {
+        document.getElementById('qrScanStatus').textContent = 'ไม่สามารถเปิดกล้องได้';
+      }
+    }
+
+    function closeQRScanner() {
+      if (qrScanner) {
+        qrScanner.stop().catch(() => {});
+        qrScanner.clear();
+        qrScanner = null;
+      }
+      document.getElementById('qrScannerModal').classList.add('hidden');
+    }
+
+    async function onQRCodeScanned(decodedText) {
+      // Stop scanner
+      closeQRScanner();
+
+      // decodedText is the card_id from QR
+      const cardId = decodedText.trim();
+      if (!cardId) return;
+
+      // Look up card in Supabase
+      try {
+        const { data: cards } = await sb.from('cards').select('*').eq('card_id', cardId);
+        if (!cards || cards.length === 0) {
+          alert('ไม่พบบัตร: ' + cardId);
+          return;
+        }
+        const card = cards[0];
+        scanCardData = card;
+
+        // Find card type image
+        let imgUrl = card.image_url;
+        if (!imgUrl || !imgUrl.startsWith('http')) {
+          const ct = cardTypes.find(t => t.card_name === card.card_type);
+          if (ct && ct.image_url) imgUrl = ct.image_url;
+        }
+        const imgHtml = imgUrl && imgUrl.startsWith('http')
+          ? `<img src="${imgUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px;">`
+          : '';
+
+        const isAvail = card.available === true || card.available === 'true' || card.available === 'TRUE';
+        const statusColor = isAvail ? '#00d084' : '#ef4444';
+        const statusText = isAvail ? 'อยู่กับทีมงาน' : 'อยู่กับตัว';
+
+        document.getElementById('scanCardInfo').innerHTML = `
+          ${imgHtml}
+          <div class="card-name">💳 ${card.card_type || '-'}</div>
+          <div class="card-detail">เลขบัตร: ****${card.last4 || '-'}</div>
+          <div class="card-detail">ชื่อ: ${card.full_name || '-'}</div>
+          <div class="card-detail">เจ้าของ: ${card.cust_id || '-'}</div>
+          <div class="card-detail">สถานะ: <span style="color:${statusColor};font-weight:600;">${statusText}</span></div>
+        `;
+        document.getElementById('scanCardModal').classList.remove('hidden');
+      } catch (e) {
+        alert('เกิดข้อผิดพลาด: ' + e.message);
+      }
+    }
+
+    async function scanCardAction(action) {
+      if (!scanCardData) return;
+      const cardId = scanCardData.card_id;
+      const isReceive = action === 'receive';
+      const actionText = isReceive ? 'รับเข้า' : 'ส่งคืน';
+
+      if (!confirm(`ยืนยัน "${actionText}" บัตร ${scanCardData.card_type} ****${scanCardData.last4}?`)) return;
+
+      try {
+        // 1. Call GAS to update card + notify customer
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'adminScanCard',
+            adminUserId: lineProfile.userId,
+            cardId: cardId,
+            scanAction: action
+          })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          // 2. Update Supabase
+          const newAvailable = isReceive;
+          const statusText = isReceive ? 'รับบัตร' : 'คืนบัตร';
+          await sb.from('cards').update({ available: newAvailable, status: statusText }).eq('card_id', cardId);
+
+          document.getElementById('scanCardModal').classList.add('hidden');
+          alert(`✅ ${actionText}เรียบร้อย\n💳 ${result.cardType} ${result.last4}\n👤 ${result.custId}\n\nแจ้งลูกค้าทาง LINE แล้ว`);
+
+          // Refresh admin users cache
+          adminAllUsers = null;
+          loadAllAdminUsers();
+        } else {
+          alert('Error: ' + (result.error || 'Unknown'));
+        }
+      } catch (e) {
+        alert('เกิดข้อผิดพลาด: ' + e.message);
       }
     }
 
