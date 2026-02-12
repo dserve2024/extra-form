@@ -42,11 +42,12 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      position: relative;
     }
 
     .profile-img {
-      width: 48px;
-      height: 48px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       object-fit: cover;
       border: 2px solid rgba(255,255,255,0.3);
@@ -83,7 +84,7 @@
     .profile-bank {
       flex-shrink: 0;
       text-align: right;
-      min-width: 110px;
+      min-width: 100px;
       background: rgba(255,255,255,0.06);
       border-radius: 8px;
       padding: 8px 10px;
@@ -102,16 +103,42 @@
       font-size: 0.75rem;
       line-height: 1.3;
     }
-    .profile-bank-edit {
-      background: rgba(78,205,196,0.2);
-      border: 1px solid rgba(78,205,196,0.3);
-      color: #4ecdc4;
-      border-radius: 6px;
-      padding: 3px 10px;
-      font-size: 0.6rem;
-      margin-top: 5px;
-      font-weight: 600;
+    .profile-gear-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
+      font-size: 0.7rem;
+    }
+    .profile-gear-btn:active {
+      background: rgba(255,255,255,0.2);
+    }
+    .scb-logo-mini {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #4E2A84;
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+    .scb-logo-mini span {
+      color: #fff;
+      font-size: 0.55rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .scb-logo-mini .scb-leaf {
+      color: #FFB81C;
+      font-size: 0.6rem;
     }
 
     /* Status Options (Card Status Modal) */
@@ -1598,19 +1625,19 @@
       font-family: 'Prompt', sans-serif;
     }
     .admin-user-grid {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
       gap: 6px;
     }
     .admin-user-item {
       background: rgba(255,255,255,0.08);
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 8px;
       cursor: pointer;
       display: flex;
       flex-direction: row;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       border: 1px solid rgba(255,255,255,0.1);
       transition: all 0.2s;
     }
@@ -1618,14 +1645,14 @@
       background: rgba(255,255,255,0.15);
     }
     .admin-user-avatar {
-      width: 44px;
-      height: 44px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background: linear-gradient(135deg, #4ecdc4, #44a08d);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
@@ -1642,7 +1669,7 @@
       min-width: 0;
     }
     .admin-user-name {
-      font-size: 0.75rem;
+      font-size: 0.65rem;
       color: #fff;
       font-weight: 600;
       white-space: nowrap;
@@ -1650,25 +1677,25 @@
       text-overflow: ellipsis;
     }
     .admin-user-sub {
-      font-size: 0.6rem;
-      color: rgba(255,255,255,0.55);
+      font-size: 0.5rem;
+      color: rgba(255,255,255,0.5);
       margin-top: 1px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .admin-user-bank-row {
-      font-size: 0.55rem;
+      font-size: 0.5rem;
       color: rgba(255,255,255,0.4);
-      margin-top: 3px;
-      line-height: 1.4;
+      margin-top: 2px;
+      line-height: 1.3;
     }
     .admin-user-bank-row .bank-tag {
       display: inline-block;
-      padding: 1px 5px;
-      border-radius: 4px;
-      margin: 1px 2px 1px 0;
-      font-size: 0.5rem;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin: 1px 1px 1px 0;
+      font-size: 0.45rem;
       font-weight: 600;
     }
     .admin-user-bank-row .bank-tag.has-cards {
@@ -1680,20 +1707,13 @@
       color: rgba(255,255,255,0.3);
       text-decoration: line-through;
     }
-    .admin-user-stats {
-      flex-shrink: 0;
-      text-align: right;
-    }
-    .admin-user-avail-count {
-      font-size: 1rem;
+    .admin-user-avail-badge {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 0.55rem;
       font-weight: 700;
       color: #00d084;
-      line-height: 1;
-    }
-    .admin-user-avail-label {
-      font-size: 0.45rem;
-      color: rgba(255,255,255,0.4);
-      margin-top: 2px;
     }
     .admin-filter-row {
       display: flex;
@@ -1841,7 +1861,8 @@
     <div id="mainContent">
       <!-- Profile -->
       <div id="profileSection" class="profile-box hidden">
-        <img id="profileImg" class="profile-img" src="" onerror="this.src='https://via.placeholder.com/48/666/fff?text=👤'">
+        <div class="profile-gear-btn" onclick="openProfileEditModal()">&#9881;</div>
+        <img id="profileImg" class="profile-img" src="" onerror="this.src='https://via.placeholder.com/56/666/fff?text=👤'">
         <div class="profile-info">
           <div class="profile-row1" id="profileRow1">-</div>
           <div class="profile-row2" id="profileRow2">-</div>
@@ -1851,7 +1872,6 @@
         <div class="profile-bank" id="profileBankSection">
           <div class="profile-bank-label">บัญชีรับเงิน</div>
           <div class="profile-bank-value" id="profileBankValue">-</div>
-          <button class="profile-bank-edit" onclick="openBankAccountModal()">แก้ไข</button>
         </div>
       </div>
       
@@ -2152,10 +2172,14 @@
   <!-- QR Scanner Modal -->
   <div id="qrScannerModal" class="modal-overlay hidden">
     <div class="modal-box">
-      <div class="modal-header">📷 สแกน QR บัตร</div>
+      <div class="modal-header">📷 สแกน QR / ค้นหาบัตร</div>
       <div class="modal-body">
         <div id="qrReaderEl"></div>
-        <div id="qrScanStatus" style="text-align:center;color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:8px;">เล็งกล้องไปที่ QR Code ของบัตร</div>
+        <div id="qrScanStatus" style="text-align:center;color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:8px;"></div>
+        <div style="margin-top:10px;display:flex;gap:6px;">
+          <input type="text" id="manualCardIdInput" placeholder="พิมพ์ Card ID..." style="flex:1;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-size:0.75rem;font-family:'Prompt',sans-serif;" onkeypress="if(event.key==='Enter')submitManualCardId()">
+          <button onclick="submitManualCardId()" style="padding:8px 12px;background:rgba(78,205,196,0.3);color:#4ecdc4;border:none;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:'Prompt',sans-serif;">ค้นหา</button>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="modal-btn modal-btn-cancel" onclick="closeQRScanner()">ปิด</button>
@@ -2244,14 +2268,21 @@
   </div>
 
   <!-- ⭐ Modal แก้ไขบัญชีธนาคาร -->
-  <div id="bankAccountModal" class="modal-overlay hidden">
+  <div id="profileEditModal" class="modal-overlay hidden">
     <div class="modal-box">
-      <div class="modal-header">แก้ไขบัญชีธนาคาร</div>
+      <div class="modal-header">แก้ไขข้อมูลส่วนตัว</div>
       <div class="modal-body">
-        <div class="modal-row" style="flex-direction:column;gap:8px;">
+        <div class="modal-row" style="flex-direction:column;gap:10px;">
           <div>
-            <span class="modal-label">ธนาคาร:</span>
-            <span style="font-weight:600;color:#fff;">ไทยพาณิชย์ (SCB)</span>
+            <span class="modal-label">📱 เบอร์โทรศัพท์:</span>
+            <input type="tel" id="profilePhoneInput" class="modal-input" maxlength="12" placeholder="0XX-XXX-XXXX">
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;">
+            <span class="modal-label">🏦 บัญชีรับเงิน:</span>
+            <div style="margin-top:4px;display:flex;align-items:center;gap:6px;">
+              <div class="scb-logo-mini"><span>SCB</span><span class="scb-leaf">🍃</span></div>
+              <span style="font-size:0.7rem;color:rgba(255,255,255,0.5);">ไทยพาณิชย์</span>
+            </div>
           </div>
           <div>
             <span class="modal-label">เลขที่บัญชี:</span>
@@ -2263,8 +2294,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="modal-btn modal-btn-cancel" onclick="closeBankAccountModal()">ยกเลิก</button>
-        <button class="modal-btn modal-btn-confirm" onclick="saveBankAccount()">บันทึก</button>
+        <button class="modal-btn modal-btn-cancel" onclick="closeProfileEditModal()">ยกเลิก</button>
+        <button class="modal-btn modal-btn-confirm" onclick="saveProfileEdit()">บันทึก</button>
       </div>
     </div>
   </div>
@@ -2288,7 +2319,7 @@
       CARD_THRESHOLD: 8,
       
       // ⭐ Allowed Banks (กรองแค่ธนาคารที่ต้องการ)
-      ALLOWED_BANKS: ['KCC', 'KFV', 'LOTUS', 'THE1', 'KBANK', 'SCB', 'TTB', 'UOB', 'BBL'],
+      ALLOWED_BANKS: ['KCC', 'KFV', 'LOTUS', 'THE1', 'KBANK', 'SCB', 'TTB', 'UOB', 'BBL', 'AEON', 'AMEX', 'GSB', 'ICBC'],
 
       // Admin
       ADMIN_UID: 'Ua7d9f66661485ad713432e99d8d99e11'
@@ -3100,28 +3131,29 @@
         const banks = bankSummary[u.cust_id] || {};
         const availCount = Object.values(banks).reduce((s, v) => s + v.avail, 0);
         const totalCount = Object.values(banks).reduce((s, v) => s + v.total, 0);
-        const initial = (u.display_name || u.full_name || u.cust_id || '?').charAt(0).toUpperCase();
-        const profileImg = u.profile_url && u.profile_url.startsWith('http')
-          ? `<img src="${u.profile_url}" onerror="this.parentElement.innerHTML='${initial}'">`
+
+        // Col B (display_name) has LINE profile picture URL
+        const hasProfileUrl = u.display_name && u.display_name.startsWith('http');
+        const userName = u.full_name || u.name_on_card || u.cust_id || '-';
+        const initial = userName.charAt(0).toUpperCase();
+        const profileImg = hasProfileUrl
+          ? `<img src="${u.display_name}" onerror="this.parentElement.innerHTML='${initial}'">`
           : initial;
 
-        // Bank tags with avail/total
+        // Bank tags
         const bankTags = Object.entries(banks).map(([b, v]) => {
           const cls = v.avail > 0 ? 'has-cards' : 'no-cards';
           return `<span class="bank-tag ${cls}">${b} ${v.avail}/${v.total}</span>`;
         }).join('');
 
-        return `<div class="admin-user-item" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${(u.display_name || u.full_name || '-').replace(/'/g, "\\'")}')">
+        return `<div class="admin-user-item" style="position:relative;" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${userName.replace(/'/g, "\\'")}')">
           <div class="admin-user-avatar">${profileImg}</div>
           <div class="admin-user-detail">
-            <div class="admin-user-name">${u.cust_id || '-'} | ${u.display_name || u.full_name || '-'}</div>
-            <div class="admin-user-sub">${u.full_name || u.name_on_card || ''}</div>
-            <div class="admin-user-bank-row">${bankTags || '<span style="color:rgba(255,255,255,0.3)">ไม่มีบัตร</span>'}</div>
+            <div class="admin-user-name">${u.cust_id || '-'}</div>
+            <div class="admin-user-sub">${userName}</div>
+            <div class="admin-user-bank-row">${bankTags || '-'}</div>
           </div>
-          <div class="admin-user-stats">
-            <div class="admin-user-avail-count">${availCount}</div>
-            <div class="admin-user-avail-label">อยู่ / ${totalCount}</div>
-          </div>
+          <div class="admin-user-avail-badge">${availCount}/${totalCount}</div>
         </div>`;
       }).join('');
 
@@ -3168,31 +3200,55 @@
     let qrScanner = null;
     let scanCardData = null;
 
-    function openQRScanner() {
+    async function openQRScanner() {
+      // Try LIFF scanCodeV2 first (works in LINE browser)
+      try {
+        if (typeof liff !== 'undefined' && liff.scanCodeV2) {
+          const result = await liff.scanCodeV2();
+          if (result && result.value) {
+            await onQRCodeScanned(result.value);
+            return;
+          }
+        }
+      } catch (e) {
+        console.log('LIFF scanCode not available:', e);
+      }
+
+      // Fallback: show modal with html5-qrcode + manual input
       document.getElementById('qrScannerModal').classList.remove('hidden');
-      document.getElementById('qrScanStatus').textContent = 'เล็งกล้องไปที่ QR Code ของบัตร';
+      document.getElementById('qrScanStatus').innerHTML = 'กำลังเปิดกล้อง...';
+      document.getElementById('manualCardIdInput').value = '';
+
       try {
         qrScanner = new Html5Qrcode('qrReaderEl');
-        qrScanner.start(
+        await qrScanner.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
           onQRCodeScanned,
           () => {}
-        ).catch(err => {
-          document.getElementById('qrScanStatus').textContent = 'ไม่สามารถเปิดกล้องได้: ' + err;
-        });
-      } catch (e) {
-        document.getElementById('qrScanStatus').textContent = 'ไม่สามารถเปิดกล้องได้';
+        );
+        document.getElementById('qrScanStatus').innerHTML = 'เล็งกล้องไปที่ QR Code';
+      } catch (err) {
+        document.getElementById('qrScanStatus').innerHTML = '<span style="color:#f87171;">ไม่สามารถเปิดกล้องได้</span><br>พิมพ์ Card ID ด้านล่างแทน';
+        console.log('Camera error:', err);
       }
     }
 
     function closeQRScanner() {
       if (qrScanner) {
-        qrScanner.stop().catch(() => {});
-        qrScanner.clear();
+        try { qrScanner.stop().catch(() => {}); } catch(e) {}
+        try { qrScanner.clear(); } catch(e) {}
         qrScanner = null;
       }
       document.getElementById('qrScannerModal').classList.add('hidden');
+    }
+
+    function submitManualCardId() {
+      const val = document.getElementById('manualCardIdInput').value.trim();
+      if (val) {
+        closeQRScanner();
+        onQRCodeScanned(val);
+      }
     }
 
     async function onQRCodeScanned(decodedText) {
@@ -3669,12 +3725,16 @@
       // Phone
       const phone = customerInfo.phone || '';
       document.getElementById('profileRow3Phone').textContent = phone ? `📱 ${phone}` : '';
-      // Bank account
+      // Bank account with SCB logo
       const bankName = customerInfo.bank_name || '';
       const bankAccount = String(customerInfo.bank_account || '').replace(/^'/, '');
       const bankEl = document.getElementById('profileBankValue');
       if (bankAccount) {
-        bankEl.innerHTML = `<div style="font-size:0.65rem;color:#4ecdc4;">${bankName || 'SCB'}</div><div style="font-size:0.8rem;font-weight:700;color:#fff;margin-top:1px;">${bankAccount}</div>`;
+        const isSCB = !bankName || bankName.toUpperCase() === 'SCB' || bankName.includes('ไทยพาณิชย์');
+        const bankDisplay = isSCB
+          ? '<div class="scb-logo-mini"><span>SCB</span><span class="scb-leaf">🍃</span></div>'
+          : `<div style="font-size:0.65rem;color:#4ecdc4;">${bankName}</div>`;
+        bankEl.innerHTML = `${bankDisplay}<div style="font-size:0.8rem;font-weight:700;color:#fff;margin-top:2px;">${bankAccount}</div>`;
       } else {
         bankEl.innerHTML = '<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);">ยังไม่ได้ตั้งค่า</div>';
       }
@@ -3682,19 +3742,19 @@
       updateCardCount();
     }
 
-    function openBankAccountModal() {
-      const bankAccount = customerInfo.bank_account || '';
-      document.getElementById('bankAccountInput').value = bankAccount;
-      document.getElementById('bankAccountModal').classList.remove('hidden');
+    function openProfileEditModal() {
+      document.getElementById('profilePhoneInput').value = customerInfo.phone || '';
+      document.getElementById('bankAccountInput').value = String(customerInfo.bank_account || '').replace(/^'/, '');
+      document.getElementById('profileEditModal').classList.remove('hidden');
     }
 
-    function closeBankAccountModal() {
-      document.getElementById('bankAccountModal').classList.add('hidden');
+    function closeProfileEditModal() {
+      document.getElementById('profileEditModal').classList.add('hidden');
     }
 
-    async function saveBankAccount() {
+    async function saveProfileEdit() {
+      const phone = document.getElementById('profilePhoneInput').value.trim();
       const bankAccount = document.getElementById('bankAccountInput').value.trim();
-      if (!bankAccount) { alert('กรุณากรอกเลขที่บัญชี'); return; }
 
       try {
         const body = {
@@ -3702,7 +3762,8 @@
           lineUserId: lineProfile.userId,
           custId: customerInfo.cust_id,
           bankName: 'SCB',
-          bankAccount: bankAccount
+          bankAccount: bankAccount,
+          phone: phone
         };
 
         const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
@@ -3714,14 +3775,17 @@
 
         if (result.success) {
           // Update Supabase directly too
-          await sb.from('users').update({ bank_name: 'SCB', bank_account: bankAccount }).eq('cust_id', customerInfo.cust_id);
+          const updates = { bank_name: 'SCB', bank_account: bankAccount };
+          if (phone) updates.phone = phone;
+          await sb.from('users').update(updates).eq('cust_id', customerInfo.cust_id);
 
           // Update local state
           customerInfo.bank_name = 'SCB';
           customerInfo.bank_account = bankAccount;
-          document.getElementById('profileBankValue').textContent = `SCB ${bankAccount}`;
-          closeBankAccountModal();
-          alert('✅ บันทึกบัญชีเรียบร้อย');
+          if (phone) customerInfo.phone = phone;
+          renderProfile();
+          closeProfileEditModal();
+          alert('✅ บันทึกข้อมูลเรียบร้อย');
         } else {
           alert('เกิดข้อผิดพลาด: ' + (result.error || 'Unknown'));
         }
