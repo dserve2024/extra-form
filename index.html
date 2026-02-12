@@ -3229,13 +3229,13 @@
         return (parseInt(aId) || 0) - (parseInt(bId) || 0);
       });
 
-      // ⭐ แยก users ที่มีบัตร vs ไม่มีบัตร
+      // ⭐ แยก users: มีบัตรอยู่กับทีม (avail > 0) vs ไม่มีบัตรฝาก (avail = 0)
       const withCards = [];
       const noCards = [];
       sorted.forEach(u => {
         const banks = bankSummary[u.cust_id] || {};
-        const totalCount = Object.values(banks).reduce((s, v) => s + v.total, 0);
-        if (totalCount > 0) withCards.push(u);
+        const availCount = Object.values(banks).reduce((s, v) => s + v.avail, 0);
+        if (availCount > 0) withCards.push(u);
         else noCards.push(u);
       });
 
