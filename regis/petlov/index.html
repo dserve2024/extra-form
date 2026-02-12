@@ -239,14 +239,14 @@
     /* Amount stepper (compact) */
     .amount-stepper {
       display: flex; align-items: center; gap: 0;
-      border-radius: 4px; overflow: hidden;
+      border-radius: 5px; overflow: hidden;
       border: 1px solid rgba(255,255,255,0.2);
-      height: 20px;
+      height: 30px;
     }
     .step-btn {
-      width: 20px; height: 20px;
+      width: 30px; height: 30px;
       background: rgba(255,255,255,0.12); border: none;
-      color: #fff; font-size: 0.7rem; font-weight: 700;
+      color: #fff; font-size: 0.85rem; font-weight: 700;
       cursor: pointer; display: flex;
       align-items: center; justify-content: center;
       font-family: 'Prompt', sans-serif;
@@ -259,7 +259,7 @@
       flex: 1; text-align: center;
       background: transparent; border: none;
       color: #fff; font-family: 'Prompt', sans-serif;
-      font-size: 0.55rem; font-weight: 600;
+      font-size: 0.7rem; font-weight: 600;
       outline: none; min-width: 0;
       padding: 0 1px;
     }
@@ -463,7 +463,8 @@ var CONFIG = {
   ELIGIBLE_BANKS: ['KFV', 'KCC', 'THE1', 'LOTUS'],
   PROMOTION: '[FEB26]PETLOV0%3M',
   DEFAULT_AMOUNT: 80000,
-  STEP_AMOUNT: 80000
+  STEP_AMOUNT: 80000,
+  MAX_AMOUNT: 560000
 };
 
 // STATE
@@ -691,6 +692,7 @@ function stepAmount(cardId, direction) {
   var current = selectedCards[cardId]._amount || CONFIG.DEFAULT_AMOUNT;
   var next = current + (direction * CONFIG.STEP_AMOUNT);
   if (next < CONFIG.STEP_AMOUNT) next = CONFIG.STEP_AMOUNT;
+  if (next > CONFIG.MAX_AMOUNT) next = CONFIG.MAX_AMOUNT;
   selectedCards[cardId]._amount = next;
   var el = document.getElementById('amt_' + cardId);
   if (el) el.value = formatNumber(next);
