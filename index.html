@@ -1053,6 +1053,27 @@
       white-space: nowrap;
     }
 
+    /* ⭐ Pending card request badge */
+    .card-btn.card-pending {
+      filter: grayscale(0.8) brightness(0.6);
+      pointer-events: none;
+      opacity: 0.65;
+    }
+    .card-btn .pending-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.75);
+      color: #ffc107;
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      z-index: 16;
+      white-space: nowrap;
+    }
+
     /* ===== Tab Bar ===== */
     .tab-bar {
       display: flex;
@@ -1716,6 +1737,32 @@
       font-weight: 700;
       color: #00d084;
     }
+    .admin-user-avatar {
+      cursor: pointer;
+      position: relative;
+    }
+    .admin-user-avatar:active {
+      opacity: 0.7;
+    }
+    .no-cards-section {
+      margin-top: 14px;
+      background: rgba(0,0,0,0.35);
+      border-radius: 12px;
+      padding: 10px 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .no-cards-header {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.65rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+    .no-cards-section .admin-user-item {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.06);
+      opacity: 0.7;
+    }
     .admin-filter-row {
       display: flex;
       gap: 4px;
@@ -2156,7 +2203,21 @@
     </div>
   </div>
 
-
+  <!-- ⭐ Modal ส่งข้อความ LINE -->
+  <div id="sendMessageModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:360px;">
+      <div class="modal-header" id="sendMsgTitle">ส่งข้อความ</div>
+      <div class="modal-body">
+        <div id="sendMsgUserInfo" style="font-size:0.7rem;color:rgba(255,255,255,0.6);margin-bottom:8px;"></div>
+        <textarea id="sendMsgText" placeholder="พิมพ์ข้อความที่ต้องการส่ง..." rows="4"
+          style="width:100%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#fff;border-radius:8px;padding:8px;font-family:'Prompt',sans-serif;font-size:0.75rem;resize:vertical;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="closeSendMessageModal()">ยกเลิก</button>
+        <button class="modal-btn modal-btn-confirm" onclick="submitSendMessage()">ส่งข้อความ</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast Popup -->
   <div id="toastContainer" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;pointer-events:none;"></div>
@@ -2294,6 +2355,21 @@
     // Supabase Client
     let sb;
 
+    // Helper: fetch all rows from Supabase (pagination over 1000 row limit)
+    async function sbFetchAll(table, selectCols) {
+      const PAGE = 1000;
+      let all = [], from = 0;
+      while (true) {
+        const { data, error } = await sb.from(table).select(selectCols).range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        all = all.concat(data);
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      return all;
+    }
+
     // State
     let lineProfile = null;
     let customerInfo = null;
@@ -2306,6 +2382,7 @@
     let cardTypes = []; // ⭐ ประเภทบัตรทั้งหมด (สำหรับ Modal เพิ่มบัตร)
     let allUnavailableCards = []; // ⭐ บัตรที่ available=false
     let showUnavailable = false;   // ⭐ toggle state
+    let pendingCardRequests = new Set(); // ⭐ card_id ที่มี pending request
 
     // ============ TAB NAVIGATION ============
     function switchTab(tab) {
@@ -2329,7 +2406,18 @@
     }
 
     // ============ TAB 1: CARD STATUS ============
-    function loadCardStatus() {
+    async function loadCardStatus() {
+      // ⭐ โหลด pending card requests ของ user นี้
+      if (customerInfo && customerInfo.cust_id) {
+        try {
+          const { data: reqs } = await sb.from('card_requests')
+            .select('card_id, status')
+            .eq('cust_id', customerInfo.cust_id)
+            .eq('status', 'pending');
+          pendingCardRequests = new Set((reqs || []).map(r => r.card_id));
+        } catch (e) { pendingCardRequests = new Set(); }
+      }
+
       const showAll = document.getElementById('statusShowAll').checked;
       const availCards = allCards || [];
       const unavailCards = allUnavailableCards || [];
@@ -2340,6 +2428,7 @@
 
       let html = displayCards.map(card => {
         const isUnavail = !card.available;
+        const isPending = pendingCardRequests.has(card.card_id);
         // ⭐ Fallback: ถ้า card ไม่มี image_url ให้ดึงจาก cardTypes
         let imgUrl = card.image_url;
         if (!imgUrl || !imgUrl.startsWith('http')) {
@@ -2351,12 +2440,15 @@
           ? `<img src="${imgUrl}" class="card-bg-img" onerror="this.style.display='none'">`
           : '';
         const noImageClass = hasImage ? '' : 'no-image';
-        const unavailBadge = isUnavail ? '<span class="unavail-badge">🚨ไม่อยู่</span>' : '';
+        const pendingBadge = isPending ? '<span class="pending-badge">🕐 รอตรวจสอบ</span>' : '';
+        const unavailBadge = !isPending && isUnavail ? '<span class="unavail-badge">🚨ไม่อยู่</span>' : '';
         const unavailClass = isUnavail ? 'unavailable' : '';
+        const pendingClass = isPending ? 'card-pending' : '';
 
-        return `<div class="card-btn ${noImageClass} ${unavailClass}"
-              onclick="showCardDetail('${card.card_id}')">
+        return `<div class="card-btn ${noImageClass} ${unavailClass} ${pendingClass}"
+              onclick="${isPending ? '' : "showCardDetail('" + card.card_id + "')"}">
           ${imgHtml}
+          ${pendingBadge}
           ${unavailBadge}
           <div class="card-overlay">
             <div class="card-name">${truncate(card.card_type, 12)}</div>
@@ -2525,6 +2617,9 @@
 
         if (result.success) {
           closeCardStatusModal();
+          // ⭐ เพิ่ม card_id เข้า pending set แล้ว refresh UI ให้เป็นสีเทาทันที
+          pendingCardRequests.add(cardId);
+          loadCardStatus();
           showToast('ส่งคำขอแล้ว รอ Admin อนุมัติ', 'success');
         } else {
           showToast('เกิดข้อผิดพลาด: ' + (result.error || result.message), 'error');
@@ -3075,14 +3170,13 @@
       container.innerHTML = '<div class="tab-placeholder">กำลังโหลดผู้ใช้...</div>';
 
       try {
-        const [usersRes, cardsRes] = await Promise.all([
-          sb.from('users').select('*'),
-          sb.from('cards').select('cust_id, bank, available').range(0, 9999)
+        const [users, allCardsRaw] = await Promise.all([
+          sbFetchAll('users', '*'),
+          sbFetchAll('cards', 'cust_id, bank, available')
         ]);
 
-        const users = usersRes.data || [];
         // ⭐ กรอง CITI ออก + กรองบัตรที่ไม่มี bank
-        const allCardsData = (cardsRes.data || []).filter(c => c.bank && c.bank !== 'CITI');
+        const allCardsData = allCardsRaw.filter(c => c.bank && c.bank !== 'CITI');
 
         // Build bank summary per user
         const userBankSummary = {};
@@ -3116,12 +3210,21 @@
         return (parseInt(aId) || 0) - (parseInt(bId) || 0);
       });
 
-      const items = sorted.map(u => {
+      // ⭐ แยก users ที่มีบัตร vs ไม่มีบัตร
+      const withCards = [];
+      const noCards = [];
+      sorted.forEach(u => {
+        const banks = bankSummary[u.cust_id] || {};
+        const totalCount = Object.values(banks).reduce((s, v) => s + v.total, 0);
+        if (totalCount > 0) withCards.push(u);
+        else noCards.push(u);
+      });
+
+      function buildUserItem(u) {
         const banks = bankSummary[u.cust_id] || {};
         const availCount = Object.values(banks).reduce((s, v) => s + v.avail, 0);
         const totalCount = Object.values(banks).reduce((s, v) => s + v.total, 0);
 
-        // ⭐ ใช้ profile_url (Col C) สำหรับรูปโปรไฟล์
         const hasProfileUrl = u.profile_url && u.profile_url.startsWith('http');
         const userName = u.full_name || u.name_on_card || u.cust_id || '-';
         const initial = userName.charAt(0).toUpperCase();
@@ -3129,14 +3232,17 @@
           ? `<img src="${u.profile_url}" onerror="this.parentElement.innerHTML='${initial}'">`
           : initial;
 
-        // Bank tags
         const bankTags = Object.entries(banks).map(([b, v]) => {
           const cls = v.avail > 0 ? 'has-cards' : 'no-cards';
           return `<span class="bank-tag ${cls}">${b} ${v.avail}/${v.total}</span>`;
         }).join('');
 
-        return `<div class="admin-user-item" style="position:relative;" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${userName.replace(/'/g, "\\'")}')">
-          <div class="admin-user-avatar">${profileImg}</div>
+        const escapedCustId = (u.cust_id || '').replace(/'/g, "\\'");
+        const escapedName = userName.replace(/'/g, "\\'");
+        const escapedLineId = (u.line_user_id || '').replace(/'/g, "\\'");
+
+        return `<div class="admin-user-item" style="position:relative;" onclick="openAdminUserCards('${escapedCustId}', '${escapedName}')">
+          <div class="admin-user-avatar" onclick="event.stopPropagation(); openSendMessageModal('${escapedCustId}', '${escapedName}', '${escapedLineId}')" title="ส่งข้อความ">${profileImg}</div>
           <div class="admin-user-detail">
             <div class="admin-user-name">${u.cust_id || '-'}</div>
             <div class="admin-user-sub">${userName}</div>
@@ -3144,9 +3250,20 @@
           </div>
           <div class="admin-user-avail-badge">${availCount}/${totalCount}</div>
         </div>`;
-      }).join('');
+      }
 
-      container.innerHTML = `<div class="admin-user-grid">${items}</div>`;
+      let html = '';
+      if (withCards.length > 0) {
+        html += `<div class="admin-user-grid">${withCards.map(buildUserItem).join('')}</div>`;
+      }
+      if (noCards.length > 0) {
+        html += `<div class="no-cards-section">
+          <div class="no-cards-header">ไม่มีบัตรฝาก (${noCards.length})</div>
+          <div class="admin-user-grid">${noCards.map(buildUserItem).join('')}</div>
+        </div>`;
+      }
+
+      container.innerHTML = html;
     }
 
     async function searchAdminUsers() {
@@ -3182,6 +3299,45 @@
           (u.phone || '').includes(query)
         );
         renderAdminUserList(filtered, adminAllUsers.bankSummary);
+      }
+    }
+
+    // ⭐ Admin: Send LINE message to user
+    var _sendMsgLineUserId = null;
+    function openSendMessageModal(custId, userName, lineUserId) {
+      _sendMsgLineUserId = lineUserId;
+      document.getElementById('sendMsgTitle').textContent = `💬 ส่งข้อความถึง ${custId}`;
+      document.getElementById('sendMsgUserInfo').textContent = userName;
+      document.getElementById('sendMsgText').value = '';
+      document.getElementById('sendMessageModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('sendMsgText').focus(), 200);
+    }
+    function closeSendMessageModal() {
+      document.getElementById('sendMessageModal').classList.add('hidden');
+      _sendMsgLineUserId = null;
+    }
+    async function submitSendMessage() {
+      const msg = document.getElementById('sendMsgText').value.trim();
+      if (!msg) { showToast('กรุณาพิมพ์ข้อความ', 'warning'); return; }
+      if (!_sendMsgLineUserId) { showToast('ไม่พบ LINE ID ของผู้ใช้', 'error'); return; }
+      try {
+        showProcessing('กำลังส่งข้อความ...');
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'sendMessageToUser', lineUserId: _sendMsgLineUserId, message: msg })
+        });
+        const result = await res.json();
+        hideProcessing();
+        if (result.success) {
+          showToast('ส่งข้อความสำเร็จ', 'success');
+          closeSendMessageModal();
+        } else {
+          showToast('ส่งไม่สำเร็จ: ' + (result.error || ''), 'error');
+        }
+      } catch (e) {
+        hideProcessing();
+        showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
       }
     }
 
