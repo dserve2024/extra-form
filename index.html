@@ -2407,14 +2407,15 @@
 
     // ============ TAB 1: CARD STATUS ============
     async function loadCardStatus() {
-      // ⭐ โหลด pending card requests ของ user นี้
+      // ⭐ โหลด pending add_card requests ของ user นี้ (change_status ไม่ต้องรออนุมัติแล้ว)
       if (customerInfo && customerInfo.cust_id) {
         try {
           const { data: reqs } = await sb.from('card_requests')
-            .select('card_id, status')
+            .select('card_id, status, request_type')
             .eq('cust_id', customerInfo.cust_id)
-            .eq('status', 'pending');
-          pendingCardRequests = new Set((reqs || []).map(r => r.card_id));
+            .eq('status', 'pending')
+            .eq('request_type', 'add_card');
+          pendingCardRequests = new Set((reqs || []).filter(r => r.card_id).map(r => r.card_id));
         } catch (e) { pendingCardRequests = new Set(); }
       }
 
@@ -2594,7 +2595,7 @@
       }
 
       try {
-        showProcessing('กำลังส่งคำขอ...');
+        showProcessing('กำลังอัพเดตสถานะ...');
         const body = {
           action: 'submitCardRequest',
           custId: customerInfo.cust_id,
@@ -2617,10 +2618,24 @@
 
         if (result.success) {
           closeCardStatusModal();
-          // ⭐ เพิ่ม card_id เข้า pending set แล้ว refresh UI ให้เป็นสีเทาทันที
-          pendingCardRequests.add(cardId);
+
+          // ⭐ อัพเดตข้อมูลในเครื่องทันที (ไม่ต้องรอ sync)
+          card.available = newAvailable;
+
+          // ย้ายบัตรระหว่าง allCards / allUnavailableCards ตาม available ใหม่
+          if (newAvailable) {
+            allUnavailableCards = allUnavailableCards.filter(c => c.card_id !== cardId);
+            if (!allCards.find(c => c.card_id === cardId)) allCards.push(card);
+          } else {
+            allCards = allCards.filter(c => c.card_id !== cardId);
+            if (!allUnavailableCards.find(c => c.card_id === cardId)) allUnavailableCards.push(card);
+          }
+
+          // อัพเดต Supabase ด้วย
+          sb.from('cards').update({ available: newAvailable }).eq('card_id', cardId).then(() => {});
+
           loadCardStatus();
-          showToast('ส่งคำขอแล้ว รอ Admin อนุมัติ', 'success');
+          showToast('อัพเดตสถานะสำเร็จ', 'success');
         } else {
           showToast('เกิดข้อผิดพลาด: ' + (result.error || result.message), 'error');
         }
@@ -3048,7 +3063,9 @@
               const nv = JSON.parse(req.new_value || '{}');
               const fromText = cv.available ? 'บัตรอยู่กับทีมงาน' : 'บัตรอยู่กับตัว';
               const toText = nv.status === 'หมดอายุ' ? 'บัตรหมดอายุ' : (nv.available ? 'บัตรอยู่กับทีมงาน' : 'บัตรอยู่กับตัว');
-              detail = `💳 ${req.card_id || '-'}<br>📌 ${fromText} → ${toText}`;
+              const cardInfo = cv.card_type ? `${cv.card_type} ****${cv.last4 || ''}` : (req.card_id || '-');
+              const nameInfo = cv.full_name ? `<br>👤 ${cv.full_name}` : '';
+              detail = `💳 ${cardInfo}${nameInfo}<br>📌 ${fromText} → ${toText}`;
             } catch(e) { detail = `💳 ${req.card_id || '-'}`; }
           } else if (req.request_type === 'request_return') {
             typeText = 'ขอนำบัตรกลับมาฝาก';
@@ -3070,6 +3087,8 @@
           ? '<span style="color:#34d399;font-size:0.6rem;">✅ อนุมัติแล้ว</span>'
           : req.status === 'rejected'
           ? '<span style="color:#f87171;font-size:0.6rem;">❌ ปฏิเสธ</span>'
+          : req.status === 'completed'
+          ? '<span style="color:#60a5fa;font-size:0.6rem;">✔️ ดำเนินการแล้ว</span>'
           : '';
 
         const reqType = isCard ? 'card_request' : 'return_request';
