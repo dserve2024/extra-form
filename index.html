@@ -865,6 +865,51 @@
       margin-left: 8px;
     }
     
+    /* Profile row3 - card count + toggle */
+    .profile-row3 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 0.65rem;
+    }
+    .profile-row3 #cardCount {
+      color: rgba(255,255,255,0.7);
+    }
+    .toggle-unavail {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: rgba(255,255,255,0.8);
+      cursor: pointer;
+      font-size: 0.65rem;
+    }
+    .toggle-unavail input {
+      width: 14px;
+      height: 14px;
+      accent-color: #ff6b6b;
+    }
+
+    /* บัตรไม่อยู่ — ตัวหนังสือสีแดง */
+    .card-btn.unavailable .card-name { color: #ff6b6b; }
+    .card-btn.unavailable .card-last4 { color: #ff6b6b; }
+    .card-btn.unavailable .card-overlay { background: rgba(80,0,0,0.55); }
+
+    /* Badge "🚨บัตรไม่อยู่" */
+    .card-btn .unavail-badge {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      background: #d32f2f;
+      color: #fff;
+      font-size: 0.4rem;
+      font-weight: 700;
+      padding: 1px 3px;
+      border-radius: 3px;
+      z-index: 15;
+      white-space: nowrap;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -905,6 +950,13 @@
         <div class="profile-info">
           <div class="profile-row1" id="profileRow1">-</div>
           <div class="profile-row2" id="profileRow2">-</div>
+          <div class="profile-row3" id="profileRow3">
+            <span id="cardCount"></span>
+            <label class="toggle-unavail" style="display:none;">
+              <input type="checkbox" id="showUnavailToggle" onchange="toggleShowUnavailable()">
+              <span>แสดงบัตรไม่อยู่</span>
+            </label>
+          </div>
         </div>
       </div>
       
@@ -1051,6 +1103,8 @@
     let recentAmounts = [5000, 10000, 15000]; // ⭐ Default values
     let recentShops = []; // ⭐ ร้านค้าล่าสุด
     let cardTypes = []; // ⭐ ประเภทบัตรทั้งหมด (สำหรับ Modal เพิ่มบัตร)
+    let allUnavailableCards = []; // ⭐ บัตรที่ available=false
+    let showUnavailable = false;   // ⭐ toggle state
     
     // ============ INIT ============
     async function init() {
@@ -1098,20 +1152,22 @@
         
         customerInfo = userData;
         
-        // Query cards
+        // Query cards (ดึงทั้งหมด — แยก available/unavailable ใน JS)
         const { data: cardsData, error: cardsError } = await sb
           .from('cards')
           .select('*')
-          .eq('cust_id', customerInfo.cust_id)
-          .eq('available', true);
-        
+          .eq('cust_id', customerInfo.cust_id);
+
         if (cardsError) {
           console.error('Cards error:', cardsError);
         }
-        
-        // ⭐ กรองเฉพาะ banks ที่อนุญาต
-        allCards = (cardsData || []).filter(card => 
-          CONFIG.ALLOWED_BANKS.includes(card.bank)
+
+        // ⭐ แยกบัตรที่อยู่ vs ไม่อยู่ + กรอง ALLOWED_BANKS
+        allCards = (cardsData || []).filter(card =>
+          CONFIG.ALLOWED_BANKS.includes(card.bank) && card.available
+        );
+        allUnavailableCards = (cardsData || []).filter(card =>
+          CONFIG.ALLOWED_BANKS.includes(card.bank) && !card.available
         );
         
         // ⭐ ดึง cardTypes สำหรับ Modal เพิ่มบัตร
@@ -1132,7 +1188,7 @@
         if (allCards.length > CONFIG.CARD_THRESHOLD) {
           renderBankSelection();
         } else {
-          renderCards(allCards);
+          renderCards(getDisplayCards(allCards));
         }
         
         hideLoading();
@@ -1242,8 +1298,17 @@
       document.getElementById('profileRow1').textContent = `${customerInfo.cust_id} | ${lineProfile.displayName}`;
       document.getElementById('profileRow2').textContent = customerInfo.full_name || customerInfo.name_on_card || '-';
       document.getElementById('profileSection').classList.remove('hidden');
+      updateCardCount();
     }
-    
+
+    function updateCardCount() {
+      const avail = allCards.length;
+      const total = allCards.length + allUnavailableCards.length;
+      document.getElementById('cardCount').textContent = `💳 บัตรที่อยู่ ${avail} / ทั้งหมด ${total}`;
+      const toggleLabel = document.querySelector('.toggle-unavail');
+      if (toggleLabel) toggleLabel.style.display = allUnavailableCards.length > 0 ? 'flex' : 'none';
+    }
+
     function renderBankSelection() {
       const banks = [...new Set(allCards.map(c => c.bank).filter(Boolean))];
       document.getElementById('bankGrid').innerHTML = banks.map(bank =>
@@ -1272,18 +1337,39 @@
       updateFilteredCards();
     }
     
-    // ⭐ ฟังก์ชันใหม่: อัพเดทบัตรตาม bank ที่เลือก
+    // ⭐ รวมบัตร available + unavailable (ถ้า toggle เปิด)
+    function getDisplayCards(availableCards) {
+      if (!showUnavailable) return availableCards;
+      const banks = new Set(availableCards.map(c => c.bank));
+      const extraCards = allUnavailableCards.filter(c =>
+        availableCards.length === 0 || banks.has(c.bank)
+      );
+      return [...availableCards, ...extraCards];
+    }
+
+    // ⭐ Toggle แสดงบัตร unavailable
+    function toggleShowUnavailable() {
+      showUnavailable = document.getElementById('showUnavailToggle').checked;
+      if (allCards.length > CONFIG.CARD_THRESHOLD) {
+        updateFilteredCards();
+      } else {
+        renderCards(getDisplayCards(allCards));
+      }
+    }
+
+    // ⭐ อัพเดทบัตรตาม bank ที่เลือก (รองรับ unavailable)
     function updateFilteredCards() {
       if (selectedBanks.length === 0) {
         document.getElementById('cardGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,0.5);font-size:0.8rem;padding:20px;">👆 กรุณาเลือกธนาคารด้านบน</div>';
         return;
       }
-      
+
       const filtered = allCards.filter(c => selectedBanks.includes(c.bank));
-      renderCards(filtered);
+      const unavailFiltered = showUnavailable
+        ? allUnavailableCards.filter(c => selectedBanks.includes(c.bank))
+        : [];
+      renderCards([...filtered, ...unavailFiltered]);
     }
-    
-    // ⭐ ลบ loadFilteredCards() ออก (ไม่ใช้แล้ว)
     
     function renderCards(cards) {
       window.displayedCards = cards;
@@ -1304,7 +1390,8 @@
         const isSelected = selectedCards.some(c => c.card_id === card.card_id);
         const isNew = card.isNew;
         const isExisting = card.isExisting; // ⭐ บัตรที่มีอยู่แล้ว (available = false)
-        
+        const isUnavailable = card.available === false && !isNew && !isExisting;
+
         // ⭐ Badge และปุ่มลบ
         let badgeHtml = '';
         let deleteBtn = '';
@@ -1314,11 +1401,16 @@
         } else if (isExisting) {
           badgeHtml = `<span class="new-badge" style="background:#f59e0b;">📌</span>`;
         }
-        
-        return `<div class="card-btn ${noImageClass} ${isSelected ? 'selected' : ''}" 
+
+        // ⭐ Badge บัตรไม่อยู่
+        const unavailBadge = isUnavailable ? '<span class="unavail-badge">🚨บัตรไม่อยู่</span>' : '';
+        const unavailClass = isUnavailable ? 'unavailable' : '';
+
+        return `<div class="card-btn ${noImageClass} ${unavailClass} ${isSelected ? 'selected' : ''}"
               data-card-id="${card.card_id}"
               onclick="toggleCard('${card.card_id}')">
           ${imgHtml}
+          ${unavailBadge}
           ${badgeHtml}
           ${deleteBtn}
           <div class="card-overlay">
@@ -1589,10 +1681,11 @@
     function resetForm() {
       selectedCards = [];
       selectedBanks = [];
-      
+      showUnavailable = false;
+
       document.getElementById('successScreen').classList.add('hidden');
       document.getElementById('mainContent').classList.remove('hidden');
-      
+
       document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('selected'));
       document.querySelectorAll('.bank-btn').forEach(btn => btn.classList.remove('selected'));
       document.getElementById('globalAmount').value = '';
@@ -1600,7 +1693,8 @@
       document.querySelectorAll('.shop-btn').forEach(b => b.classList.remove('selected'));
       selectDate(document.querySelector('.date-btn[data-type="today"]'), 'today');
       document.getElementById('sameToggle').checked = true;
-      
+      document.getElementById('showUnavailToggle').checked = false;
+
       // ⭐ รีเซ็ต card grid (ถ้ามี bank selection)
       if (allCards.length > CONFIG.CARD_THRESHOLD) {
         updateFilteredCards();
