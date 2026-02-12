@@ -96,61 +96,60 @@
     }
     .add-card-btn:hover { background: rgba(78,205,196,0.25); }
 
-    /* ── Card Grid (5 per row, overlapping) ── */
+    /* ── Card Grid (5 per row) ── */
     .card-grid {
-      display: flex;
-      flex-wrap: wrap;
-      padding: 4px 0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      padding: 6px 0;
     }
     .card-btn {
       position: relative;
-      flex-shrink: 0;
-      width: 74px; height: 47px;
-      border: 2px solid rgba(255,255,255,0.15);
-      border-radius: 6px;
-      background-color: rgba(255,255,255,0.1);
+      aspect-ratio: 1.586;
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 7px;
+      background-color: rgba(255,255,255,0.08);
       cursor: pointer;
       transition: all 0.2s;
       overflow: hidden;
-      margin-left: -8px;
-      margin-bottom: 4px;
-      box-shadow: -2px 0 6px rgba(0,0,0,0.3);
     }
-    .card-btn:nth-child(5n+1) { margin-left: 0; }
-    .card-btn:hover { transform: translateY(-3px); z-index: 5; }
+    .card-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
     .card-btn.selected {
-      border-color: #00d084; z-index: 10;
-      transform: translateY(-6px);
-      box-shadow: 0 4px 12px rgba(0,208,132,0.4);
+      border-color: #00d084;
+      box-shadow: 0 0 0 1px #00d084, 0 4px 14px rgba(0,208,132,0.35);
+      transform: translateY(-3px);
     }
-    .card-btn.unavail { opacity: 0.5; filter: grayscale(0.4); }
+    .card-btn.unavail { opacity: 0.45; filter: grayscale(0.5); }
     .card-btn.unavail.selected { opacity: 1; filter: none; }
 
     .card-btn .card-bg-img {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
-      object-fit: cover; border-radius: 4px;
+      object-fit: cover; border-radius: 5px;
     }
     .card-btn .card-overlay {
       position: absolute; inset: 0;
       display: flex; flex-direction: column;
       justify-content: flex-end; align-items: flex-start;
-      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
-      padding: 2px 4px;
+      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%);
+      padding: 3px 4px;
     }
     .card-btn .card-name {
-      font-size: 0.38rem; color: #fff; font-weight: 600;
+      font-size: 0.35rem; color: rgba(255,255,255,0.9); font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 95%; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      max-width: 100%; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      line-height: 1.2;
     }
     .card-btn .card-last4 {
-      font-size: 0.55rem; color: #fff; font-weight: 700;
-      letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      font-size: 0.5rem; color: #fff; font-weight: 700;
+      letter-spacing: 0.5px; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      line-height: 1.3;
     }
     .card-btn .card-owner {
-      font-size: 0.32rem; color: rgba(255,255,255,0.8);
+      font-size: 0.3rem; color: rgba(255,255,255,0.7);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 95%; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      max-width: 100%; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      line-height: 1.1;
     }
     .card-btn.no-image { background: linear-gradient(135deg, #3a3a5c 0%, #2a2a4c 100%); }
     .card-btn.no-image .card-overlay { background: transparent; justify-content: center; align-items: center; }
@@ -159,16 +158,17 @@
       position: absolute; inset: 0;
       background: rgba(0, 208, 132, 0.75);
       display: flex; justify-content: center; align-items: center;
-      opacity: 0; transition: opacity 0.2s; border-radius: 4px; z-index: 10;
+      opacity: 0; transition: opacity 0.2s; border-radius: 5px; z-index: 10;
     }
     .card-btn .check-overlay::after {
-      content: '\2713'; font-size: 1.0rem; color: #fff;
+      content: '\2713'; font-size: 1rem; color: #fff;
       font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .card-btn.selected .check-overlay { opacity: 1; }
 
     .no-cards-msg {
-      text-align: center; width: 100%;
+      grid-column: 1 / -1;
+      text-align: center;
       color: rgba(255,255,255,0.5); font-size: 0.8rem; padding: 20px;
     }
 
