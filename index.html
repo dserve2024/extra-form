@@ -1822,10 +1822,10 @@
             <span class="count-badge" id="adminPendingCount">0</span>
           </div>
           <div class="admin-filter-row">
-            <button class="admin-filter-btn active" onclick="filterAdminRequests('all')">ทั้งหมด</button>
-            <button class="admin-filter-btn" onclick="filterAdminRequests('pending')">รอ</button>
-            <button class="admin-filter-btn" onclick="filterAdminRequests('approved')">อนุมัติ</button>
-            <button class="admin-filter-btn" onclick="filterAdminRequests('rejected')">ปฏิเสธ</button>
+            <button class="admin-filter-btn active" onclick="filterAdminRequests('all', this)">ทั้งหมด</button>
+            <button class="admin-filter-btn" onclick="filterAdminRequests('pending', this)">รอ</button>
+            <button class="admin-filter-btn" onclick="filterAdminRequests('approved', this)">อนุมัติ</button>
+            <button class="admin-filter-btn" onclick="filterAdminRequests('rejected', this)">ปฏิเสธ</button>
           </div>
           <div id="adminReqList" class="admin-req-list"></div>
         </div>
@@ -2105,6 +2105,20 @@
       returnPickupTime = null;
       document.getElementById('returnPickupBox').classList.add('hidden');
       updateReturnAddressVisibility();
+
+      // Reset delivery option visual selection
+      document.querySelectorAll('#tabReturn .delivery-item').forEach((item, i) => {
+        item.classList.toggle('selected', i === 0);
+        const radio = item.querySelector('input[type="radio"]');
+        if (radio) radio.checked = (i === 0);
+      });
+      // Reset pickup date/time selections
+      document.querySelectorAll('.pickup-date-item').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('.pickup-time-item').forEach(el => {
+        el.classList.remove('selected');
+        const radio = el.querySelector('input[type="radio"]');
+        if (radio) radio.checked = false;
+      });
     }
 
     async function loadReturnLastAddress() {
@@ -2317,7 +2331,7 @@
 
         adminRequests = [
           ...((cardReqs || []).map(r => ({ ...r, _type: 'card' }))),
-          ...((returnReqs || []).filter(r => r.status === 'pending').map(r => ({ ...r, _type: 'return' })))
+          ...((returnReqs || []).map(r => ({ ...r, _type: 'return' })))
         ].sort((a, b) => (b.requested_at || '').localeCompare(a.requested_at || ''));
 
         renderAdminRequests();
@@ -2326,10 +2340,10 @@
       }
     }
 
-    function filterAdminRequests(filter) {
+    function filterAdminRequests(filter, btn) {
       adminFilter = filter;
       document.querySelectorAll('.admin-filter-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
+      if (btn) btn.classList.add('active');
       renderAdminRequests();
     }
 
@@ -2366,10 +2380,11 @@
           ? '<span style="color:#f87171;font-size:0.6rem;">❌ ปฏิเสธ</span>'
           : '';
 
-        const actionsHtml = isPending && isCard
+        const reqType = isCard ? 'card_request' : 'return_request';
+        const actionsHtml = isPending
           ? `<div class="admin-req-actions">
-              <button class="admin-btn-reject" onclick="adminRejectRequest('${req.request_id}', 'card_request')">❌ ปฏิเสธ</button>
-              <button class="admin-btn-approve" onclick="adminApproveRequest('${req.request_id}', 'card_request')">✅ อนุมัติ</button>
+              <button class="admin-btn-reject" onclick="adminRejectRequest('${req.request_id}', '${reqType}')">❌ ปฏิเสธ</button>
+              <button class="admin-btn-approve" onclick="adminApproveRequest('${req.request_id}', '${reqType}')">✅ อนุมัติ</button>
             </div>`
           : statusBadge;
 
