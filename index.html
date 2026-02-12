@@ -168,7 +168,19 @@
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       margin-top: 1px;
     }
-    
+
+    .card-btn .card-owner {
+      font-size: 0.45rem;
+      color: rgba(255,255,255,0.75);
+      font-weight: 400;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 95%;
+    }
+
     /* ถ้าไม่มีรูป */
     .card-btn.no-image {
       background: linear-gradient(135deg, #3a3a5c 0%, #2a2a4c 100%);
@@ -893,6 +905,7 @@
     /* บัตรไม่อยู่ — ตัวหนังสือสีแดง */
     .card-btn.unavailable .card-name { color: #ff6b6b; }
     .card-btn.unavailable .card-last4 { color: #ff6b6b; }
+    .card-btn.unavailable .card-owner { color: #ff6b6b; }
     .card-btn.unavailable .card-overlay { background: rgba(80,0,0,0.55); }
 
     /* Badge "🚨บัตรไม่อยู่" */
@@ -1416,6 +1429,7 @@
           <div class="card-overlay">
             <div class="card-name">${truncate(card.card_type, 12)}</div>
             <div class="card-last4">${card.last4}</div>
+            <div class="card-owner">${truncate(card.full_name, 12)}</div>
           </div>
           <div class="check-overlay"></div>
         </div>`;
