@@ -146,7 +146,7 @@
       display: flex; flex-direction: column;
       justify-content: flex-end; align-items: flex-start;
       background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%);
-      padding: 4px 5px;
+      padding: 4px 4px 4px 8px;
     }
     .card-btn .card-name {
       font-size: 0.42rem; color: rgba(255,255,255,0.9); font-weight: 600;
@@ -236,17 +236,17 @@
     }
     .selected-card-item .remove-x:active { background: rgba(255,100,100,0.7); }
 
-    /* Amount stepper */
+    /* Amount stepper (compact) */
     .amount-stepper {
       display: flex; align-items: center; gap: 0;
-      border-radius: 6px; overflow: hidden;
+      border-radius: 4px; overflow: hidden;
       border: 1px solid rgba(255,255,255,0.2);
-      height: 30px;
+      height: 20px;
     }
     .step-btn {
-      width: 30px; height: 30px;
+      width: 20px; height: 20px;
       background: rgba(255,255,255,0.12); border: none;
-      color: #fff; font-size: 1rem; font-weight: 700;
+      color: #fff; font-size: 0.7rem; font-weight: 700;
       cursor: pointer; display: flex;
       align-items: center; justify-content: center;
       font-family: 'Prompt', sans-serif;
@@ -259,9 +259,9 @@
       flex: 1; text-align: center;
       background: transparent; border: none;
       color: #fff; font-family: 'Prompt', sans-serif;
-      font-size: 0.7rem; font-weight: 600;
+      font-size: 0.55rem; font-weight: 600;
       outline: none; min-width: 0;
-      padding: 0 2px;
+      padding: 0 1px;
     }
 
     /* Add Card Modal */
@@ -277,13 +277,29 @@
       border: 1px solid rgba(255,255,255,0.15);
     }
     .modal-box h3 { font-size: 0.85rem; color: #fff; margin-bottom: 10px; text-align: center; }
-    .modal-box select, .modal-box input {
+    .modal-box input {
       width: 100%; padding: 8px 10px; margin-bottom: 8px;
       border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
       background: rgba(255,255,255,0.08); color: #fff;
       font-family: 'Prompt', sans-serif; font-size: 0.8rem; outline: none;
     }
-    .modal-box select option { background: #2a2a4c; color: #fff; }
+    .type-btn-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 6px; margin-bottom: 10px; max-height: 220px; overflow-y: auto;
+    }
+    .type-btn {
+      padding: 8px 6px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8);
+      font-family: 'Prompt', sans-serif; font-size: 0.65rem;
+      cursor: pointer; text-align: center; transition: all 0.15s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .type-btn:active { transform: scale(0.96); }
+    .type-btn.active {
+      border-color: #4ecdc4; background: rgba(78,205,196,0.2);
+      color: #4ecdc4; font-weight: 600;
+    }
     .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
     .modal-actions button {
       flex: 1; padding: 8px; border-radius: 8px; border: none;
@@ -413,7 +429,7 @@
 <div id="addCardModal" class="modal-overlay hidden" onclick="if(event.target===this)closeAddCardModal()">
   <div class="modal-box">
     <h3>+ Add Card</h3>
-    <select id="newCardType"><option value="">-- Select card type --</option></select>
+    <div id="newCardTypeGrid" class="type-btn-grid"></div>
     <input type="tel" id="newLast4" maxlength="4" inputmode="numeric" placeholder="Last 4 digits" autocomplete="off">
     <input type="text" id="newCardName" maxlength="50" placeholder="Name on card (English)" autocomplete="off" style="text-transform:uppercase">
     <div class="modal-actions">
@@ -704,15 +720,19 @@ function toggleUnavail() {
 }
 
 // ADD CARD MODAL
+var selectedNewCardType = '';
+
 function showAddCardModal() {
-  var select = document.getElementById('newCardType');
-  select.innerHTML = '<option value="">-- Select card type --</option>';
+  selectedNewCardType = '';
+  var grid = document.getElementById('newCardTypeGrid');
+  var html = '';
   Object.keys(cardTypesMap).forEach(function(name) {
     var t = cardTypesMap[name];
     if (CONFIG.ELIGIBLE_BANKS.indexOf(t.bank) !== -1) {
-      select.innerHTML += '<option value="' + name + '">' + name + '</option>';
+      html += '<button class="type-btn" onclick="selectCardType(this,\'' + name.replace(/'/g, "\\'") + '\')">' + name + '</button>';
     }
   });
+  grid.innerHTML = html || '<div style="color:rgba(255,255,255,0.4);font-size:0.7rem;grid-column:1/-1;text-align:center;padding:12px;">No card types available</div>';
   document.getElementById('newLast4').value = '';
   var defaultName = '';
   if (customerInfo.full_name) defaultName = customerInfo.full_name.toUpperCase();
@@ -721,12 +741,19 @@ function showAddCardModal() {
   document.getElementById('addCardModal').classList.remove('hidden');
 }
 
+function selectCardType(btn, name) {
+  var btns = document.getElementById('newCardTypeGrid').querySelectorAll('.type-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active');
+  selectedNewCardType = name;
+}
+
 function closeAddCardModal() {
   document.getElementById('addCardModal').classList.add('hidden');
 }
 
 async function addNewCard() {
-  var cardType = document.getElementById('newCardType').value;
+  var cardType = selectedNewCardType;
   var last4 = document.getElementById('newLast4').value.trim();
   var fullName = document.getElementById('newCardName').value.trim().toUpperCase();
 
