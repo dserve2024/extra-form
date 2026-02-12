@@ -284,20 +284,28 @@
       font-family: 'Prompt', sans-serif; font-size: 0.8rem; outline: none;
     }
     .type-btn-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr);
-      gap: 6px; margin-bottom: 10px; max-height: 220px; overflow-y: auto;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 6px; margin-bottom: 10px; max-height: 280px; overflow-y: auto;
     }
     .type-btn {
-      padding: 8px 6px; border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.15);
+      padding: 4px; border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8);
-      font-family: 'Prompt', sans-serif; font-size: 0.65rem;
+      font-family: 'Prompt', sans-serif; font-size: 0.5rem;
       cursor: pointer; text-align: center; transition: all 0.15s;
+      overflow: hidden;
+    }
+    .type-btn img {
+      width: 100%; aspect-ratio: 1.586; object-fit: cover;
+      border-radius: 5px; margin-bottom: 3px; display: block;
+    }
+    .type-btn .type-label {
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      line-height: 1.2;
     }
     .type-btn:active { transform: scale(0.96); }
     .type-btn.active {
-      border-color: #4ecdc4; background: rgba(78,205,196,0.2);
+      border-color: #4ecdc4; background: rgba(78,205,196,0.15);
       color: #4ecdc4; font-weight: 600;
     }
     .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
@@ -731,7 +739,11 @@ function showAddCardModal() {
   Object.keys(cardTypesMap).forEach(function(name) {
     var t = cardTypesMap[name];
     if (CONFIG.ELIGIBLE_BANKS.indexOf(t.bank) !== -1) {
-      html += '<button class="type-btn" onclick="selectCardType(this,\'' + name.replace(/'/g, "\\'") + '\')">' + name + '</button>';
+      var imgTag = (t.image_url && t.image_url.startsWith('http'))
+        ? '<img src="' + t.image_url + '" onerror="this.style.display=\'none\'">'
+        : '';
+      html += '<button class="type-btn" onclick="selectCardType(this,\'' + name.replace(/'/g, "\\'") + '\')">'
+        + imgTag + '<div class="type-label">' + name + '</div></button>';
     }
   });
   grid.innerHTML = html || '<div style="color:rgba(255,255,255,0.4);font-size:0.7rem;grid-column:1/-1;text-align:center;padding:12px;">No card types available</div>';
