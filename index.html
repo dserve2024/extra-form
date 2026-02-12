@@ -8,8 +8,7 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- QR Scanner -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- QR Scanner (removed) -->
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -927,6 +926,8 @@
     }
     
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes toastIn { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+    @keyframes toastOut { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(0.8); } }
     
     /* Error */
     .error-box {
@@ -1772,19 +1773,6 @@
     }
     .admin-subtab-content.hidden { display: none !important; }
 
-    /* QR Scanner */
-    .qr-scan-btn {
-      padding: 8px 10px;
-      background: rgba(78,205,196,0.3);
-      color: #4ecdc4;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    #qrScannerModal .modal-box { max-width: 360px; }
-    #qrReaderEl { width: 100%; border-radius: 8px; overflow: hidden; }
     .scan-result-card {
       background: rgba(255,255,255,0.08);
       border-radius: 10px;
@@ -2138,7 +2126,6 @@
           <div class="admin-search-box">
             <input type="text" id="adminUserSearch" placeholder="ค้นหา cust_id / ชื่อ / เบอร์" onkeypress="if(event.key==='Enter')searchAdminUsers()">
             <button onclick="searchAdminUsers()">ค้นหา</button>
-            <button class="qr-scan-btn" onclick="openQRScanner()">📷</button>
           </div>
           <div id="adminUserList"></div>
         </div>
@@ -2169,38 +2156,16 @@
     </div>
   </div>
 
-  <!-- QR Scanner Modal -->
-  <div id="qrScannerModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <div class="modal-header">📷 สแกน QR / ค้นหาบัตร</div>
-      <div class="modal-body">
-        <div id="qrReaderEl"></div>
-        <div id="qrScanStatus" style="text-align:center;color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:8px;"></div>
-        <div style="margin-top:10px;display:flex;gap:6px;">
-          <input type="text" id="manualCardIdInput" placeholder="พิมพ์ Card ID..." style="flex:1;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-size:0.75rem;font-family:'Prompt',sans-serif;" onkeypress="if(event.key==='Enter')submitManualCardId()">
-          <button onclick="submitManualCardId()" style="padding:8px 12px;background:rgba(78,205,196,0.3);color:#4ecdc4;border:none;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:'Prompt',sans-serif;">ค้นหา</button>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn modal-btn-cancel" onclick="closeQRScanner()">ปิด</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Scan Card Result Modal -->
-  <div id="scanCardModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <div class="modal-header">💳 ข้อมูลบัตร</div>
-      <div class="modal-body">
-        <div id="scanCardInfo" class="scan-result-card"></div>
-        <div class="scan-action-btns">
-          <button class="btn-receive" onclick="scanCardAction('receive')">✅ รับเข้า</button>
-          <button class="btn-return" onclick="scanCardAction('return')">🛑 ส่งคืน</button>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('scanCardModal').classList.add('hidden')">ยกเลิก</button>
-      </div>
+
+  <!-- Toast Popup -->
+  <div id="toastContainer" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;pointer-events:none;"></div>
+
+  <!-- Processing Overlay -->
+  <div id="processingOverlay" class="modal-overlay hidden" style="z-index:99998;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;">
+    <div style="text-align:center;color:#fff;">
+      <div class="loading-spinner" style="margin:0 auto 12px;"></div>
+      <div id="processingText" style="font-size:0.85rem;color:rgba(255,255,255,0.9);">กำลังดำเนินการ...</div>
     </div>
   </div>
 
@@ -2422,7 +2387,7 @@
       const name = document.getElementById('modalName').value.trim();
 
       if (!modalSelectedType || last4.length !== 4 || !name) {
-        alert('กรุณากรอกข้อมูลให้ครบ');
+        showToast('กรุณากรอกข้อมูลให้ครบ', 'warning');
         return;
       }
 
@@ -2430,13 +2395,14 @@
       const allCardsList = [...(allCards || []), ...(allUnavailableCards || [])];
       const dup = allCardsList.find(c => c.card_type === modalSelectedType && c.last4 === last4);
       if (dup) {
-        alert(`บัตร ${modalSelectedType} ${last4} มีอยู่แล้วในระบบ`);
+        showToast(`บัตร ${modalSelectedType} ${last4} มีอยู่แล้วในระบบ`, 'warning');
         return;
       }
 
       const typeInfo = cardTypes.find(t => t.card_name === modalSelectedType) || {};
 
       try {
+        showProcessing('กำลังส่งคำขอเพิ่มบัตร...');
         const body = {
           action: 'submitAddCardRequest',
           custId: customerInfo.cust_id,
@@ -2454,17 +2420,19 @@
           body: JSON.stringify(body)
         });
         const result = await res.json();
+        hideProcessing();
 
         if (result.success) {
-          alert('✅ ส่งคำขอเพิ่มบัตรแล้ว\nรอ Admin อนุมัติ');
+          showToast('ส่งคำขอเพิ่มบัตรแล้ว\nรอ Admin อนุมัติ', 'success');
           closeAddCardModal();
           window._addCardMode = null;
         } else {
-          alert('❌ ส่งคำขอไม่สำเร็จ: ' + (result.error || 'Unknown error'));
+          showToast('ส่งคำขอไม่สำเร็จ: ' + (result.error || 'Unknown error'), 'error');
         }
       } catch (e) {
+        hideProcessing();
         console.error('Error submitting add card request:', e);
-        alert('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
+        showToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
       }
     }
 
@@ -2513,7 +2481,7 @@
       if (!cardId) return;
 
       const selected = document.querySelector('input[name="cardStatusOption"]:checked');
-      if (!selected) { alert('กรุณาเลือกสถานะ'); return; }
+      if (!selected) { showToast('กรุณาเลือกสถานะ', 'warning'); return; }
 
       const allCardsList = [...(allCards || []), ...(allUnavailableCards || [])];
       const card = allCardsList.find(c => c.card_id === cardId);
@@ -2534,6 +2502,7 @@
       }
 
       try {
+        showProcessing('กำลังส่งคำขอ...');
         const body = {
           action: 'submitCardRequest',
           custId: customerInfo.cust_id,
@@ -2552,15 +2521,17 @@
           body: JSON.stringify(body)
         });
         const result = await res.json();
+        hideProcessing();
 
         if (result.success) {
           closeCardStatusModal();
-          alert('✅ ส่งคำขอแล้ว รอ Admin อนุมัติ');
+          showToast('ส่งคำขอแล้ว รอ Admin อนุมัติ', 'success');
         } else {
-          alert('เกิดข้อผิดพลาด: ' + (result.error || result.message));
+          showToast('เกิดข้อผิดพลาด: ' + (result.error || result.message), 'error');
         }
       } catch (e) {
-        alert('เกิดข้อผิดพลาด: ' + e.message);
+        hideProcessing();
+        showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
       }
     }
 
@@ -2801,7 +2772,7 @@
     async function submitReturnForm() {
       // Validate cards (from returnSelectedCardIds Set)
       const selectedCardIds = [...returnSelectedCardIds];
-      if (selectedCardIds.length === 0) { alert('กรุณาเลือกบัตรอย่างน้อย 1 ใบ'); return; }
+      if (selectedCardIds.length === 0) { showToast('กรุณาเลือกบัตรอย่างน้อย 1 ใบ', 'warning'); return; }
       const allCardsList = allCards || [];
       const selectedCards = selectedCardIds.map(id => {
         const c = allCardsList.find(card => card.card_id === id);
@@ -2810,13 +2781,13 @@
 
       const recipientName = document.getElementById('returnRecipientName').value.trim();
       const phone = document.getElementById('returnPhone').value.trim();
-      if (!recipientName) { alert('กรุณากรอกชื่อ-สกุลผู้รับ'); return; }
-      if (!phone) { alert('กรุณากรอกเบอร์โทรศัพท์'); return; }
+      if (!recipientName) { showToast('กรุณากรอกชื่อ-สกุลผู้รับ', 'warning'); return; }
+      if (!phone) { showToast('กรุณากรอกเบอร์โทรศัพท์', 'warning'); return; }
 
       // Validate pickup for option 4
       if (returnDeliveryOption === 4) {
-        if (!returnPickupDate) { alert('กรุณาเลือกวันรับ'); return; }
-        if (!returnPickupTime) { alert('กรุณาเลือกเวลารับ'); return; }
+        if (!returnPickupDate) { showToast('กรุณาเลือกวันรับ', 'warning'); return; }
+        if (!returnPickupTime) { showToast('กรุณาเลือกเวลารับ', 'warning'); return; }
       }
 
       // Get address
@@ -2836,7 +2807,7 @@
           province = document.getElementById('returnProvince').value.trim();
           postalCode = document.getElementById('returnPostalCode').value.trim();
           if (!address || !subDistrict || !district || !province || !postalCode) {
-            alert('กรุณากรอกที่อยู่ให้ครบถ้วน'); return;
+            showToast('กรุณากรอกที่อยู่ให้ครบถ้วน', 'warning'); return;
           }
         }
       }
@@ -2874,12 +2845,12 @@
           allCards = allCards.filter(c => !selectedCardIds.includes(c.card_id));
           updateCardCount();
         } else {
-          alert('เกิดข้อผิดพลาด: ' + (result.error || result.message));
+          showToast('เกิดข้อผิดพลาด: ' + (result.error || result.message), 'error');
           btn.disabled = false;
           btn.textContent = '✅ ยืนยันขอรับบัตรคืน';
         }
       } catch (e) {
-        alert('เกิดข้อผิดพลาด: ' + e.message);
+        showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
         btn.disabled = false;
         btn.textContent = '✅ ยืนยันขอรับบัตรคืน';
       }
@@ -2965,7 +2936,7 @@
         const typeClass = isCard ? 'card-req' : 'return-req';
         const isPending = req.status === 'pending';
 
-        // ⭐ ภาษาคนทั่วไป
+        // ⭐ ภาษาคนทั่วไป + แสดงรายละเอียดการเปลี่ยนแปลง
         let typeText = '';
         let detail = '';
         if (isCard) {
@@ -2975,6 +2946,15 @@
               const nv = JSON.parse(req.new_value || '{}');
               detail = `💳 ${nv.cardType || '-'} ****${nv.last4 || '-'}<br>👤 ${nv.fullName || '-'} | 🏦 ${nv.bank || '-'}`;
             } catch(e) { detail = `💳 ${req.new_value || '-'}`; }
+          } else if (req.request_type === 'change_status') {
+            typeText = 'เปลี่ยนสถานะ';
+            try {
+              const cv = JSON.parse(req.current_value || '{}');
+              const nv = JSON.parse(req.new_value || '{}');
+              const fromText = cv.available ? 'บัตรอยู่กับทีมงาน' : 'บัตรอยู่กับตัว';
+              const toText = nv.status === 'หมดอายุ' ? 'บัตรหมดอายุ' : (nv.available ? 'บัตรอยู่กับทีมงาน' : 'บัตรอยู่กับตัว');
+              detail = `💳 ${req.card_id || '-'}<br>📌 ${fromText} → ${toText}`;
+            } catch(e) { detail = `💳 ${req.card_id || '-'}`; }
           } else if (req.request_type === 'request_return') {
             typeText = 'ขอนำบัตรกลับมาฝาก';
             detail = `💳 ${req.card_id || '-'}`;
@@ -3019,6 +2999,7 @@
     async function adminApproveRequest(requestId, requestType) {
       if (!confirm('อนุมัติคำขอนี้?')) return;
       try {
+        showProcessing('กำลังอนุมัติ...');
         const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -3031,25 +3012,29 @@
           })
         });
         const result = await res.json();
+        hideProcessing();
         if (result.success) {
           // Update local state
           const req = adminRequests.find(r => r.request_id === requestId);
           if (req) req.status = 'approved';
           renderAdminRequests();
+          showToast('อนุมัติเรียบร้อย', 'success');
           // ⭐ Update Supabase for persistence
           const table = requestType === 'card_request' ? 'card_requests' : 'return_requests';
           sb.from(table).update({ status: 'approved' }).eq('request_id', requestId).then(() => {});
         } else {
-          alert('Error: ' + (result.error || 'Unknown'));
+          showToast('Error: ' + (result.error || 'Unknown'), 'error');
         }
       } catch (e) {
-        alert('Error: ' + e.message);
+        hideProcessing();
+        showToast('Error: ' + e.message, 'error');
       }
     }
 
     async function adminRejectRequest(requestId, requestType) {
       const note = prompt('เหตุผลที่ปฏิเสธ (ไม่บังคับ):') || '';
       try {
+        showProcessing('กำลังดำเนินการ...');
         const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -3062,18 +3047,21 @@
           })
         });
         const result = await res.json();
+        hideProcessing();
         if (result.success) {
           const req = adminRequests.find(r => r.request_id === requestId);
           if (req) req.status = 'rejected';
           renderAdminRequests();
+          showToast('ปฏิเสธเรียบร้อย', 'success');
           // ⭐ Update Supabase for persistence
           const table = requestType === 'card_request' ? 'card_requests' : 'return_requests';
           sb.from(table).update({ status: 'rejected', note: note }).eq('request_id', requestId).then(() => {});
         } else {
-          alert('Error: ' + (result.error || 'Unknown'));
+          showToast('Error: ' + (result.error || 'Unknown'), 'error');
         }
       } catch (e) {
-        alert('Error: ' + e.message);
+        hideProcessing();
+        showToast('Error: ' + e.message, 'error');
       }
     }
 
@@ -3089,11 +3077,12 @@
       try {
         const [usersRes, cardsRes] = await Promise.all([
           sb.from('users').select('*'),
-          sb.from('cards').select('cust_id, bank, available')
+          sb.from('cards').select('cust_id, bank, available').range(0, 9999)
         ]);
 
         const users = usersRes.data || [];
-        const allCardsData = cardsRes.data || [];
+        // ⭐ กรอง CITI ออก + กรองบัตรที่ไม่มี bank
+        const allCardsData = (cardsRes.data || []).filter(c => c.bank && c.bank !== 'CITI');
 
         // Build bank summary per user
         const userBankSummary = {};
@@ -3132,12 +3121,12 @@
         const availCount = Object.values(banks).reduce((s, v) => s + v.avail, 0);
         const totalCount = Object.values(banks).reduce((s, v) => s + v.total, 0);
 
-        // Col B (display_name) has LINE profile picture URL
-        const hasProfileUrl = u.display_name && u.display_name.startsWith('http');
+        // ⭐ ใช้ profile_url (Col C) สำหรับรูปโปรไฟล์
+        const hasProfileUrl = u.profile_url && u.profile_url.startsWith('http');
         const userName = u.full_name || u.name_on_card || u.cust_id || '-';
         const initial = userName.charAt(0).toUpperCase();
         const profileImg = hasProfileUrl
-          ? `<img src="${u.display_name}" onerror="this.parentElement.innerHTML='${initial}'">`
+          ? `<img src="${u.profile_url}" onerror="this.parentElement.innerHTML='${initial}'">`
           : initial;
 
         // Bank tags
@@ -3193,149 +3182,6 @@
           (u.phone || '').includes(query)
         );
         renderAdminUserList(filtered, adminAllUsers.bankSummary);
-      }
-    }
-
-    // ⭐ QR Scanner
-    let qrScanner = null;
-    let scanCardData = null;
-
-    async function openQRScanner() {
-      // Try LIFF scanCodeV2 first (works in LINE browser)
-      try {
-        if (typeof liff !== 'undefined' && liff.scanCodeV2) {
-          const result = await liff.scanCodeV2();
-          if (result && result.value) {
-            await onQRCodeScanned(result.value);
-            return;
-          }
-        }
-      } catch (e) {
-        console.log('LIFF scanCode not available:', e);
-      }
-
-      // Fallback: show modal with html5-qrcode + manual input
-      document.getElementById('qrScannerModal').classList.remove('hidden');
-      document.getElementById('qrScanStatus').innerHTML = 'กำลังเปิดกล้อง...';
-      document.getElementById('manualCardIdInput').value = '';
-
-      try {
-        qrScanner = new Html5Qrcode('qrReaderEl');
-        await qrScanner.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 220, height: 220 } },
-          onQRCodeScanned,
-          () => {}
-        );
-        document.getElementById('qrScanStatus').innerHTML = 'เล็งกล้องไปที่ QR Code';
-      } catch (err) {
-        document.getElementById('qrScanStatus').innerHTML = '<span style="color:#f87171;">ไม่สามารถเปิดกล้องได้</span><br>พิมพ์ Card ID ด้านล่างแทน';
-        console.log('Camera error:', err);
-      }
-    }
-
-    function closeQRScanner() {
-      if (qrScanner) {
-        try { qrScanner.stop().catch(() => {}); } catch(e) {}
-        try { qrScanner.clear(); } catch(e) {}
-        qrScanner = null;
-      }
-      document.getElementById('qrScannerModal').classList.add('hidden');
-    }
-
-    function submitManualCardId() {
-      const val = document.getElementById('manualCardIdInput').value.trim();
-      if (val) {
-        closeQRScanner();
-        onQRCodeScanned(val);
-      }
-    }
-
-    async function onQRCodeScanned(decodedText) {
-      // Stop scanner
-      closeQRScanner();
-
-      // decodedText is the card_id from QR
-      const cardId = decodedText.trim();
-      if (!cardId) return;
-
-      // Look up card in Supabase
-      try {
-        const { data: cards } = await sb.from('cards').select('*').eq('card_id', cardId);
-        if (!cards || cards.length === 0) {
-          alert('ไม่พบบัตร: ' + cardId);
-          return;
-        }
-        const card = cards[0];
-        scanCardData = card;
-
-        // Find card type image
-        let imgUrl = card.image_url;
-        if (!imgUrl || !imgUrl.startsWith('http')) {
-          const ct = cardTypes.find(t => t.card_name === card.card_type);
-          if (ct && ct.image_url) imgUrl = ct.image_url;
-        }
-        const imgHtml = imgUrl && imgUrl.startsWith('http')
-          ? `<img src="${imgUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px;">`
-          : '';
-
-        const isAvail = card.available === true || card.available === 'true' || card.available === 'TRUE';
-        const statusColor = isAvail ? '#00d084' : '#ef4444';
-        const statusText = isAvail ? 'อยู่กับทีมงาน' : 'อยู่กับตัว';
-
-        document.getElementById('scanCardInfo').innerHTML = `
-          ${imgHtml}
-          <div class="card-name">💳 ${card.card_type || '-'}</div>
-          <div class="card-detail">เลขบัตร: ****${card.last4 || '-'}</div>
-          <div class="card-detail">ชื่อ: ${card.full_name || '-'}</div>
-          <div class="card-detail">เจ้าของ: ${card.cust_id || '-'}</div>
-          <div class="card-detail">สถานะ: <span style="color:${statusColor};font-weight:600;">${statusText}</span></div>
-        `;
-        document.getElementById('scanCardModal').classList.remove('hidden');
-      } catch (e) {
-        alert('เกิดข้อผิดพลาด: ' + e.message);
-      }
-    }
-
-    async function scanCardAction(action) {
-      if (!scanCardData) return;
-      const cardId = scanCardData.card_id;
-      const isReceive = action === 'receive';
-      const actionText = isReceive ? 'รับเข้า' : 'ส่งคืน';
-
-      if (!confirm(`ยืนยัน "${actionText}" บัตร ${scanCardData.card_type} ****${scanCardData.last4}?`)) return;
-
-      try {
-        // 1. Call GAS to update card + notify customer
-        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'adminScanCard',
-            adminUserId: lineProfile.userId,
-            cardId: cardId,
-            scanAction: action
-          })
-        });
-        const result = await res.json();
-
-        if (result.success) {
-          // 2. Update Supabase
-          const newAvailable = isReceive;
-          const statusText = isReceive ? 'รับบัตร' : 'คืนบัตร';
-          await sb.from('cards').update({ available: newAvailable, status: statusText }).eq('card_id', cardId);
-
-          document.getElementById('scanCardModal').classList.add('hidden');
-          alert(`✅ ${actionText}เรียบร้อย\n💳 ${result.cardType} ${result.last4}\n👤 ${result.custId}\n\nแจ้งลูกค้าทาง LINE แล้ว`);
-
-          // Refresh admin users cache
-          adminAllUsers = null;
-          loadAllAdminUsers();
-        } else {
-          alert('Error: ' + (result.error || 'Unknown'));
-        }
-      } catch (e) {
-        alert('เกิดข้อผิดพลาด: ' + e.message);
       }
     }
 
@@ -3421,10 +3267,10 @@
           if (card) card.available = newAvailable;
           renderAdminUserCards();
         } else {
-          alert('Error: ' + (result.error || 'Unknown'));
+          showToast('Error: ' + (result.error || 'Unknown'), 'error');
         }
       } catch (e) {
-        alert('Error: ' + e.message);
+        showToast('Error: ' + e.message, 'error');
       }
     }
 
@@ -3485,7 +3331,7 @@
           .upload(fileName, file, { upsert: true });
 
         if (uploadError) {
-          alert('อัพโหลดไม่สำเร็จ: ' + uploadError.message);
+          showToast('อัพโหลดไม่สำเร็จ: ' + uploadError.message, 'error');
           return;
         }
 
@@ -3511,10 +3357,10 @@
           })
         });
 
-        alert(`✅ อัพโหลดรูป ${cardName} สำเร็จ`);
+        showToast(`อัพโหลดรูป ${cardName} สำเร็จ`, 'success');
         loadAdminCardTypes(); // Refresh grid
       } catch (e) {
-        alert('เกิดข้อผิดพลาด: ' + e.message);
+        showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
       }
     }
 
@@ -3757,6 +3603,7 @@
       const bankAccount = document.getElementById('bankAccountInput').value.trim();
 
       try {
+        showProcessing('กำลังบันทึก...');
         const body = {
           action: 'updateBankAccount',
           lineUserId: lineProfile.userId,
@@ -3772,6 +3619,7 @@
           body: JSON.stringify(body)
         });
         const result = await res.json();
+        hideProcessing();
 
         if (result.success) {
           // Update Supabase directly too
@@ -3785,12 +3633,13 @@
           if (phone) customerInfo.phone = phone;
           renderProfile();
           closeProfileEditModal();
-          alert('✅ บันทึกข้อมูลเรียบร้อย');
+          showToast('บันทึกข้อมูลเรียบร้อย', 'success');
         } else {
-          alert('เกิดข้อผิดพลาด: ' + (result.error || 'Unknown'));
+          showToast('เกิดข้อผิดพลาด: ' + (result.error || 'Unknown'), 'error');
         }
       } catch (e) {
-        alert('เกิดข้อผิดพลาด: ' + e.message);
+        hideProcessing();
+        showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
       }
     }
 
@@ -4098,14 +3947,14 @@
       if (isChecked) {
         const globalAmount = parseNumber(document.getElementById('globalAmount').value);
         if (!globalAmount || globalAmount <= 0) {
-          alert('กรุณากรอกยอดเงิน');
+          showToast('กรุณากรอกยอดเงิน', 'warning');
           return;
         }
         selectedCards.forEach(card => card.amount = globalAmount);
       } else {
         const emptyCards = selectedCards.filter(c => !c.amount || c.amount <= 0);
         if (emptyCards.length > 0) {
-          alert('กรุณากรอกยอดเงินให้ครบทุกบัตร');
+          showToast('กรุณากรอกยอดเงินให้ครบทุกบัตร', 'warning');
           return;
         }
       }
@@ -4152,12 +4001,12 @@
         if (result.success) {
           showSuccess(result.data);
         } else {
-          alert(result.message || result.error || 'เกิดข้อผิดพลาด');
+          showToast(result.message || result.error || 'เกิดข้อผิดพลาด', result.success ? 'success' : 'error');
         }
         
       } catch (error) {
         hideLoading();
-        alert('เกิดข้อผิดพลาด: ' + error.message);
+        showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
       }
     }
     
@@ -4343,7 +4192,7 @@
       const name = document.getElementById('modalName').value.trim();
 
       if (!modalSelectedType || last4.length !== 4 || !name) {
-        alert('กรุณากรอกข้อมูลให้ครบ');
+        showToast('กรุณากรอกข้อมูลให้ครบ', 'warning');
         return;
       }
       
@@ -4503,6 +4352,32 @@
       return `${day}/${month}/${year}`;
     }
     
+    // ⭐ Toast Popup (แทน browser alert)
+    function showToast(message, type = 'success', duration = 2500) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'rgba(16,185,129,0.95)'
+                    : type === 'error' ? 'rgba(239,68,68,0.95)'
+                    : type === 'warning' ? 'rgba(245,158,11,0.95)'
+                    : 'rgba(78,205,196,0.95)';
+      toast.style.cssText = `background:${bgColor};color:#fff;padding:14px 24px;border-radius:12px;font-size:0.85rem;line-height:1.5;text-align:center;pointer-events:auto;box-shadow:0 8px 32px rgba(0,0,0,0.3);max-width:300px;animation:toastIn 0.3s ease;white-space:pre-line;`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'toastOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    function showProcessing(text = 'กำลังดำเนินการ...') {
+      document.getElementById('processingText').textContent = text;
+      document.getElementById('processingOverlay').classList.remove('hidden');
+    }
+
+    function hideProcessing() {
+      document.getElementById('processingOverlay').classList.add('hidden');
+    }
+
     function setLoading(text) {
       document.getElementById('loadingText').textContent = text;
       document.getElementById('loadingOverlay').classList.remove('hidden');
