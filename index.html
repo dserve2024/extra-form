@@ -101,6 +101,9 @@
     
     .bank-btn:hover { background: rgba(255,255,255,0.2); }
     .bank-btn.selected { background: rgba(0,208,132,0.3); border-color: #00d084; }
+    .bank-btn.bank-btn-gray { opacity: 0.35; text-decoration: line-through; }
+    .bank-btn.bank-btn-gray:hover { opacity: 0.6; }
+    .bank-btn.bank-btn-gray.selected { opacity: 1; background: rgba(0,208,132,0.3); border-color: #00d084; text-decoration: none; }
     
     /* Card Grid - 3 per row ⭐ COMPACT */
     .card-grid {
@@ -1538,6 +1541,66 @@
       border-color: rgba(255,255,255,0.3);
     }
 
+    /* Admin Sub-tabs */
+    .admin-subtab-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 3px;
+    }
+    .admin-subtab-btn {
+      flex: 1;
+      padding: 6px 4px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.65rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+      transition: all 0.2s;
+    }
+    .admin-subtab-btn.active {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+    .admin-subtab-btn .count-badge {
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.5rem;
+      padding: 1px 5px;
+      border-radius: 8px;
+      margin-left: 2px;
+    }
+    .admin-subtab-content.hidden { display: none !important; }
+
+    /* Admin: User item with bank summary */
+    .admin-user-bank-summary {
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 2px;
+    }
+
+    /* Admin: Card image management - no-image badge */
+    .card-btn .no-image-badge {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.5rem;
+      padding: 1px 5px;
+      border-radius: 6px;
+      font-weight: 600;
+      z-index: 5;
+    }
+
+    /* Card image upload input (hidden) */
+    #adminImageUpload { display: none; }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -1580,10 +1643,6 @@
           <div class="profile-row2" id="profileRow2">-</div>
           <div class="profile-row3" id="profileRow3">
             <span id="cardCount"></span>
-            <label class="toggle-unavail" style="display:none;">
-              <input type="checkbox" id="showUnavailToggle" onchange="toggleShowUnavailable()">
-              <span>แสดงบัตรไม่อยู่</span>
-            </label>
           </div>
         </div>
       </div>
@@ -1599,14 +1658,14 @@
       <!-- ===== Tab: สถานะบัตร ===== -->
       <div id="tabStatus" class="tab-content hidden">
         <div class="section-box">
-          <div class="status-toggle-row">
-            <span id="statusCardCount"></span>
-            <label>
-              <input type="checkbox" id="statusShowAll" onchange="loadCardStatus()">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span id="statusCardCount" style="font-size:0.65rem;color:rgba(255,255,255,0.7);"></span>
+            <label class="toggle-unavail" style="display:flex;">
+              <input type="checkbox" id="statusShowAll" onchange="loadCardStatus()" style="width:14px;height:14px;accent-color:#ff6b6b;">
               <span>แสดงบัตรไม่อยู่</span>
             </label>
           </div>
-          <div id="statusCardList" class="status-card-list"></div>
+          <div id="statusCardGrid" class="card-grid"></div>
         </div>
         <div id="cardDetailPanel"></div>
       </div>
@@ -1615,13 +1674,21 @@
       <div id="tabReturn" class="tab-content hidden">
         <!-- Return: Main Form -->
         <div id="returnFormSection">
-          <!-- Card Selection -->
+          <!-- Bank Selection (if many cards) -->
+          <div id="returnBankSection" class="section-box hidden" style="margin-bottom:8px;">
+            <div class="section-title">🏦 เลือกธนาคาร</div>
+            <div class="bank-grid" id="returnBankGrid"></div>
+          </div>
+
+          <!-- Card Selection (card grid with multi-select) -->
           <div class="section-box" style="margin-bottom:8px;">
-            <div class="section-title">💳 เลือกบัตรที่ต้องการรับคืน</div>
-            <button type="button" class="return-select-all" onclick="returnToggleSelectAll()">
-              ☑️ <span id="returnSelectAllText">เลือกทั้งหมด</span>
-            </button>
-            <div id="returnCardList" class="return-card-list"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div class="section-title" style="margin:0;">💳 เลือกบัตรที่ต้องการรับคืน</div>
+              <button type="button" class="return-select-all" onclick="returnToggleSelectAll()" style="font-size:0.65rem;">
+                ☑️ <span id="returnSelectAllText">เลือกทั้งหมด</span>
+              </button>
+            </div>
+            <div id="returnCardGrid" class="card-grid"></div>
           </div>
 
           <!-- Delivery Method -->
@@ -1754,7 +1821,13 @@
       
       <!-- Card Selection -->
       <div id="cardSection" class="section-box hidden">
-        <div class="section-title">💳 เลือกบัตร</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div class="section-title" style="margin:0;">💳 เลือกบัตร</div>
+          <label class="toggle-unavail" id="unavailToggleLabel" style="display:none;">
+            <input type="checkbox" id="showUnavailToggle" onchange="toggleShowUnavailable()">
+            <span>แสดงบัตรไม่อยู่</span>
+          </label>
+        </div>
         <div class="card-grid" id="cardGrid"></div>
       </div>
       
@@ -1815,12 +1888,15 @@
 
       <!-- ===== Tab: Admin Panel ===== -->
       <div id="tabAdmin" class="tab-content hidden">
-        <!-- Pending Requests -->
-        <div class="section-box admin-section">
-          <div class="admin-section-title">
-            📋 คำขอรออนุมัติ
-            <span class="count-badge" id="adminPendingCount">0</span>
-          </div>
+        <!-- Admin Sub-tabs -->
+        <div class="admin-subtab-bar">
+          <button class="admin-subtab-btn active" onclick="switchAdminSubTab('requests', this)">📋 คำขอ <span class="count-badge" id="adminPendingCount">0</span></button>
+          <button class="admin-subtab-btn" onclick="switchAdminSubTab('users', this)">👥 ผู้ใช้</button>
+          <button class="admin-subtab-btn" onclick="switchAdminSubTab('images', this)">🖼 รูปบัตร</button>
+        </div>
+
+        <!-- Sub-tab 1: คำขอรออนุมัติ -->
+        <div id="adminSubRequests" class="admin-subtab-content">
           <div class="admin-filter-row">
             <button class="admin-filter-btn active" onclick="filterAdminRequests('all', this)">ทั้งหมด</button>
             <button class="admin-filter-btn" onclick="filterAdminRequests('pending', this)">รอ</button>
@@ -1830,20 +1906,44 @@
           <div id="adminReqList" class="admin-req-list"></div>
         </div>
 
-        <!-- User Management -->
-        <div class="section-box admin-section">
-          <div class="admin-section-title">👥 ค้นหาผู้ใช้</div>
+        <!-- Sub-tab 2: จัดการผู้ใช้ -->
+        <div id="adminSubUsers" class="admin-subtab-content hidden">
           <div class="admin-search-box">
             <input type="text" id="adminUserSearch" placeholder="ค้นหา cust_id / ชื่อ / เบอร์" onkeypress="if(event.key==='Enter')searchAdminUsers()">
             <button onclick="searchAdminUsers()">ค้นหา</button>
           </div>
           <div id="adminUserList"></div>
         </div>
+
+        <!-- Sub-tab 3: จัดการรูปบัตร -->
+        <div id="adminSubImages" class="admin-subtab-content hidden">
+          <div id="adminCardTypeGrid" class="card-grid"></div>
+        </div>
+      </div>
+
+      <!-- Admin: User Cards Modal -->
+      <div id="adminUserCardsModal" class="modal-overlay hidden">
+        <div class="modal-box" style="max-height:85vh;overflow-y:auto;">
+          <div class="modal-header" id="adminUserCardsTitle">บัตรของผู้ใช้</div>
+          <div class="modal-body">
+            <label class="toggle-unavail" style="display:flex;margin-bottom:8px;">
+              <input type="checkbox" id="adminUserShowAll" onchange="renderAdminUserCards()" style="width:14px;height:14px;accent-color:#ff6b6b;">
+              <span>แสดงบัตรไม่อยู่</span>
+            </label>
+            <div id="adminUserCardGrid" class="card-grid"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('adminUserCardsModal').classList.add('hidden')">ปิด</button>
+          </div>
+        </div>
       </div>
 
     </div>
   </div>
-  
+
+  <!-- Hidden file input for card image upload -->
+  <input type="file" id="adminImageUpload" accept="image/*">
+
   <!-- Loading -->
   <div id="loadingOverlay" class="loading-overlay">
     <div class="loading-content">
@@ -1955,32 +2055,97 @@
       const unavailCards = allUnavailableCards || [];
       const displayCards = showAll ? [...availCards, ...unavailCards] : availCards;
 
-      // Update count
       document.getElementById('statusCardCount').textContent =
         `💳 บัตรที่อยู่ ${availCards.length} / ทั้งหมด ${availCards.length + unavailCards.length}`;
 
-      // Render list
-      const html = displayCards.map(card => {
+      let html = displayCards.map(card => {
         const isUnavail = !card.available;
-        const hasImg = card.image_url && card.image_url.startsWith('http');
-        const imgHtml = hasImg
-          ? `<img class="status-card-img" src="${card.image_url}" onerror="this.style.display='none'">`
-          : `<div class="status-card-img"></div>`;
-        const badgeCls = isUnavail ? 'unavailable' : 'available';
-        const badgeText = isUnavail ? 'ไม่อยู่' : 'อยู่กับทีมงาน';
+        const hasImage = card.image_url && card.image_url.startsWith('http');
+        const imgHtml = hasImage
+          ? `<img src="${card.image_url}" class="card-bg-img" onerror="this.style.display='none'">`
+          : '';
+        const noImageClass = hasImage ? '' : 'no-image';
+        const unavailBadge = isUnavail ? '<span class="unavail-badge">🚨ไม่อยู่</span>' : '';
+        const unavailClass = isUnavail ? 'unavailable' : '';
 
-        return `<div class="status-card-item ${isUnavail ? 'unavail' : ''}" onclick="showCardDetail('${card.card_id}')">
+        return `<div class="card-btn ${noImageClass} ${unavailClass}"
+              onclick="showCardDetail('${card.card_id}')">
           ${imgHtml}
-          <div class="status-card-info">
-            <div class="status-card-name">${card.card_type} ${card.last4}</div>
-            <div class="status-card-sub">${truncate(card.full_name, 20)}</div>
+          ${unavailBadge}
+          <div class="card-overlay">
+            <div class="card-name">${truncate(card.card_type, 12)}</div>
+            <div class="card-last4">${card.last4}</div>
+            <div class="card-owner">${truncate(card.full_name, 12)}</div>
           </div>
-          <span class="status-badge ${badgeCls}">${badgeText}</span>
         </div>`;
       }).join('');
 
-      document.getElementById('statusCardList').innerHTML = html || '<div class="tab-placeholder">ไม่มีบัตร</div>';
+      // ปุ่มเพิ่มบัตร (ต้อง Admin อนุมัติ)
+      const remainder = displayCards.length % 3;
+      const spanClass = remainder === 0 ? 'span-3' : remainder === 1 ? 'span-2' : '';
+      html += `<div class="add-card-btn ${spanClass}" onclick="openAddCardRequestModal()">
+        <span>➕</span>
+        <span>เพิ่มบัตร</span>
+      </div>`;
+
+      document.getElementById('statusCardGrid').innerHTML = html || '<div class="tab-placeholder">ไม่มีบัตร</div>';
       document.getElementById('cardDetailPanel').innerHTML = '';
+    }
+
+    function openAddCardRequestModal() {
+      window._addCardMode = 'request';
+      openAddCardModal();
+    }
+
+    async function confirmAddCardRequest() {
+      const last4 = document.getElementById('modalLast4').value.trim();
+      const name = document.getElementById('modalName').value.trim();
+
+      if (!modalSelectedType || last4.length !== 4 || !name) {
+        alert('กรุณากรอกข้อมูลให้ครบ');
+        return;
+      }
+
+      // เช็คบัตรซ้ำ
+      const allCardsList = [...(allCards || []), ...(allUnavailableCards || [])];
+      const dup = allCardsList.find(c => c.card_type === modalSelectedType && c.last4 === last4);
+      if (dup) {
+        alert(`บัตร ${modalSelectedType} ${last4} มีอยู่แล้วในระบบ`);
+        return;
+      }
+
+      const typeInfo = cardTypes.find(t => t.card_name === modalSelectedType) || {};
+
+      try {
+        const body = {
+          action: 'submitAddCardRequest',
+          custId: customerInfo.cust_id,
+          bank: typeInfo.bank || (document.getElementById('modalBankSelect')?.value) || '',
+          cardType: modalSelectedType,
+          last4: last4,
+          fullName: name,
+          lineUserId: lineProfile.userId,
+          displayName: lineProfile.displayName
+        };
+
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(body)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          alert('✅ ส่งคำขอเพิ่มบัตรแล้ว\nรอ Admin อนุมัติ');
+          closeAddCardModal();
+          window._addCardMode = null;
+        } else {
+          alert('❌ ส่งคำขอไม่สำเร็จ: ' + (result.error || 'Unknown error'));
+        }
+      } catch (e) {
+        console.error('Error submitting add card request:', e);
+        alert('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
+      }
     }
 
     function showCardDetail(cardId) {
@@ -2071,20 +2236,27 @@
     let returnPickupDate = null;
     let returnPickupTime = null;
 
+    var returnSelectedCardIds = new Set();
+    var returnSelectedBank = null;
+
     function loadReturnTab() {
-      // Render available cards for return
       const availCards = allCards || [];
-      const container = document.getElementById('returnCardList');
-      container.innerHTML = availCards.map(card =>
-        `<label class="return-card-item" onclick="this.classList.toggle('selected')">
-          <input type="checkbox" value="${card.card_id}"
-                 data-display="${card.card_type} ${card.last4} ${card.full_name || ''}">
-          <div class="rc-info">
-            <div class="rc-type">${card.card_type} ${card.last4}</div>
-            <div class="rc-name">${truncate(card.full_name, 20)}</div>
-          </div>
-        </label>`
-      ).join('') || '<div class="tab-placeholder">ไม่มีบัตรที่อยู่กับทีมงาน</div>';
+      returnSelectedCardIds = new Set();
+      returnSelectedBank = null;
+
+      // Show bank selection if many cards
+      const bankSection = document.getElementById('returnBankSection');
+      if (availCards.length > CONFIG.CARD_THRESHOLD) {
+        bankSection.classList.remove('hidden');
+        const banks = [...new Set(availCards.map(c => c.bank).filter(Boolean))];
+        document.getElementById('returnBankGrid').innerHTML = banks.map(bank =>
+          `<button class="bank-btn" data-bank="${bank}" onclick="toggleReturnBank('${bank}')">${bank}</button>`
+        ).join('');
+        document.getElementById('returnCardGrid').innerHTML = '<div class="tab-placeholder">เลือกธนาคารก่อน</div>';
+      } else {
+        bankSection.classList.add('hidden');
+        renderReturnCards(availCards);
+      }
 
       // Prefill name & phone
       if (customerInfo) {
@@ -2119,6 +2291,58 @@
         const radio = el.querySelector('input[type="radio"]');
         if (radio) radio.checked = false;
       });
+    }
+
+    function toggleReturnBank(bank) {
+      const btns = document.querySelectorAll('#returnBankGrid .bank-btn');
+      btns.forEach(b => b.classList.toggle('selected', b.dataset.bank === bank));
+      returnSelectedBank = bank;
+      returnSelectedCardIds = new Set();
+
+      const bankCards = (allCards || []).filter(c => c.bank === bank);
+      renderReturnCards(bankCards);
+    }
+
+    function renderReturnCards(cards) {
+      const html = cards.map(card => {
+        const isSelected = returnSelectedCardIds.has(card.card_id);
+        const hasImage = card.image_url && card.image_url.startsWith('http');
+        const imgHtml = hasImage ? `<img src="${card.image_url}" class="card-bg-img" onerror="this.style.display='none'">` : '';
+        const noImageClass = hasImage ? '' : 'no-image';
+
+        return `<div class="card-btn ${noImageClass} ${isSelected ? 'selected' : ''}"
+              data-card-id="${card.card_id}"
+              onclick="toggleReturnCard('${card.card_id}')">
+          ${imgHtml}
+          <div class="check-overlay"></div>
+          <div class="card-overlay">
+            <div class="card-name">${truncate(card.card_type, 12)}</div>
+            <div class="card-last4">${card.last4}</div>
+            <div class="card-owner">${truncate(card.full_name, 12)}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+      document.getElementById('returnCardGrid').innerHTML = html || '<div class="tab-placeholder">ไม่มีบัตรที่อยู่กับทีมงาน</div>';
+      updateReturnSelectAllText();
+    }
+
+    function toggleReturnCard(cardId) {
+      if (returnSelectedCardIds.has(cardId)) {
+        returnSelectedCardIds.delete(cardId);
+      } else {
+        returnSelectedCardIds.add(cardId);
+      }
+      // Update visual
+      const btn = document.querySelector(`#returnCardGrid .card-btn[data-card-id="${cardId}"]`);
+      if (btn) btn.classList.toggle('selected', returnSelectedCardIds.has(cardId));
+      updateReturnSelectAllText();
+    }
+
+    function updateReturnSelectAllText() {
+      const visibleCards = document.querySelectorAll('#returnCardGrid .card-btn');
+      const allSelected = visibleCards.length > 0 && Array.from(visibleCards).every(b => b.classList.contains('selected'));
+      document.getElementById('returnSelectAllText').textContent = allSelected ? 'ยกเลิกทั้งหมด' : 'เลือกทั้งหมด';
     }
 
     async function loadReturnLastAddress() {
@@ -2180,13 +2404,20 @@
     }
 
     function returnToggleSelectAll() {
-      const cbs = document.querySelectorAll('#returnCardList input[type="checkbox"]');
-      const allChecked = Array.from(cbs).every(cb => cb.checked);
-      cbs.forEach(cb => {
-        cb.checked = !allChecked;
-        cb.closest('.return-card-item').classList.toggle('selected', !allChecked);
+      const cardBtns = document.querySelectorAll('#returnCardGrid .card-btn');
+      const allSelected = cardBtns.length > 0 && Array.from(cardBtns).every(b => b.classList.contains('selected'));
+
+      cardBtns.forEach(btn => {
+        const cardId = btn.dataset.cardId;
+        if (allSelected) {
+          returnSelectedCardIds.delete(cardId);
+          btn.classList.remove('selected');
+        } else {
+          returnSelectedCardIds.add(cardId);
+          btn.classList.add('selected');
+        }
       });
-      document.getElementById('returnSelectAllText').textContent = allChecked ? 'เลือกทั้งหมด' : 'ยกเลิกทั้งหมด';
+      updateReturnSelectAllText();
     }
 
     function renderReturnDateGrid() {
@@ -2225,11 +2456,14 @@
     }
 
     async function submitReturnForm() {
-      // Validate cards
-      const checkedBoxes = document.querySelectorAll('#returnCardList input:checked');
-      const selectedCards = Array.from(checkedBoxes).map(cb => cb.dataset.display);
-      const selectedCardIds = Array.from(checkedBoxes).map(cb => cb.value);
-      if (selectedCards.length === 0) { alert('กรุณาเลือกบัตรอย่างน้อย 1 ใบ'); return; }
+      // Validate cards (from returnSelectedCardIds Set)
+      const selectedCardIds = [...returnSelectedCardIds];
+      if (selectedCardIds.length === 0) { alert('กรุณาเลือกบัตรอย่างน้อย 1 ใบ'); return; }
+      const allCardsList = allCards || [];
+      const selectedCards = selectedCardIds.map(id => {
+        const c = allCardsList.find(card => card.card_id === id);
+        return c ? `${c.card_type} ${c.last4} ${c.full_name || ''}` : id;
+      });
 
       const recipientName = document.getElementById('returnRecipientName').value.trim();
       const phone = document.getElementById('returnPhone').value.trim();
@@ -2311,6 +2545,26 @@
     // ============ TAB 4: ADMIN PANEL ============
     let adminRequests = [];
     let adminFilter = 'all';
+    let adminCurrentSubTab = 'requests';
+    let adminUserCardsData = [];
+    let adminUserCardsAllData = [];
+    let adminSelectedCardType = null;
+
+    function switchAdminSubTab(subtab, btn) {
+      adminCurrentSubTab = subtab;
+      document.querySelectorAll('.admin-subtab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      document.querySelectorAll('.admin-subtab-content').forEach(el => el.classList.add('hidden'));
+
+      if (subtab === 'requests') {
+        document.getElementById('adminSubRequests').classList.remove('hidden');
+      } else if (subtab === 'users') {
+        document.getElementById('adminSubUsers').classList.remove('hidden');
+      } else if (subtab === 'images') {
+        document.getElementById('adminSubImages').classList.remove('hidden');
+        loadAdminCardTypes();
+      }
+    }
 
     async function loadAdminData() {
       if (!lineProfile || lineProfile.userId !== CONFIG.ADMIN_UID) return;
@@ -2364,13 +2618,31 @@
       container.innerHTML = filtered.map(req => {
         const isCard = req._type === 'card';
         const typeClass = isCard ? 'card-req' : 'return-req';
-        const typeText = isCard ? 'เปลี่ยนสถานะ' : 'คืนบัตร';
         const isPending = req.status === 'pending';
 
+        // ⭐ ภาษาคนทั่วไป
+        let typeText = '';
         let detail = '';
         if (isCard) {
-          detail = `💳 ${req.card_id || '-'}<br>${req.request_type || '-'}`;
+          if (req.request_type === 'add_card') {
+            typeText = 'ขอเพิ่มบัตร';
+            try {
+              const nv = JSON.parse(req.new_value || '{}');
+              detail = `💳 ${nv.cardType || '-'} ****${nv.last4 || '-'}<br>👤 ${nv.fullName || '-'} | 🏦 ${nv.bank || '-'}`;
+            } catch(e) { detail = `💳 ${req.new_value || '-'}`; }
+          } else if (req.request_type === 'request_return') {
+            typeText = 'ขอนำบัตรกลับมาฝาก';
+            detail = `💳 ${req.card_id || '-'}`;
+          } else if (req.request_type === 'request_available') {
+            typeText = 'ขอรับบัตรคืน';
+            detail = `💳 ${req.card_id || '-'}`;
+          } else {
+            typeText = req.request_type || 'เปลี่ยนสถานะ';
+            detail = `💳 ${req.card_id || '-'}`;
+          }
         } else {
+          const cardCount = (req.cards || '').split('\n').filter(Boolean).length;
+          typeText = `ขอรับบัตรคืน ${cardCount} ใบ`;
           detail = `💳 ${(req.cards || '').replace(/\n/g, ', ')}<br>🚚 ${req.delivery_method || '-'}`;
         }
 
@@ -2419,6 +2691,9 @@
           const req = adminRequests.find(r => r.request_id === requestId);
           if (req) req.status = 'approved';
           renderAdminRequests();
+          // ⭐ Update Supabase for persistence
+          const table = requestType === 'card_request' ? 'card_requests' : 'return_requests';
+          sb.from(table).update({ status: 'approved' }).eq('request_id', requestId).then(() => {});
         } else {
           alert('Error: ' + (result.error || 'Unknown'));
         }
@@ -2446,6 +2721,9 @@
           const req = adminRequests.find(r => r.request_id === requestId);
           if (req) req.status = 'rejected';
           renderAdminRequests();
+          // ⭐ Update Supabase for persistence
+          const table = requestType === 'card_request' ? 'card_requests' : 'return_requests';
+          sb.from(table).update({ status: 'rejected', note: note }).eq('request_id', requestId).then(() => {});
         } else {
           alert('Error: ' + (result.error || 'Unknown'));
         }
@@ -2479,24 +2757,212 @@
           return;
         }
 
-        // Count cards per user
-        const { data: allCardsData } = await sb.from('cards').select('cust_id');
-        const cardCounts = {};
+        // Get all cards with bank info for summary
+        const { data: allCardsData } = await sb.from('cards').select('cust_id, bank, available');
+
+        // Build bank summary per user: "KCC(3/5) SCB(2/2)"
+        const userBankSummary = {};
         (allCardsData || []).forEach(c => {
-          cardCounts[c.cust_id] = (cardCounts[c.cust_id] || 0) + 1;
+          if (!userBankSummary[c.cust_id]) userBankSummary[c.cust_id] = {};
+          if (!userBankSummary[c.cust_id][c.bank]) userBankSummary[c.cust_id][c.bank] = { avail: 0, total: 0 };
+          userBankSummary[c.cust_id][c.bank].total++;
+          if (c.available === true || c.available === 'true' || c.available === 'TRUE') {
+            userBankSummary[c.cust_id][c.bank].avail++;
+          }
         });
 
-        container.innerHTML = filtered.map(u =>
-          `<div class="admin-user-item">
+        container.innerHTML = filtered.map(u => {
+          const banks = userBankSummary[u.cust_id] || {};
+          const bankText = Object.entries(banks).map(([b, v]) => `${b}(${v.avail}/${v.total})`).join(' ');
+          const totalCards = Object.values(banks).reduce((s, v) => s + v.total, 0);
+
+          return `<div class="admin-user-item" style="cursor:pointer;" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${(u.display_name || u.full_name || '-').replace(/'/g, "\\'")}')">
             <div>
               <div class="admin-user-info">${u.cust_id} | ${u.display_name || '-'}</div>
               <div class="admin-user-sub">${u.full_name || '-'} | ${u.phone || '-'}</div>
+              <div class="admin-user-bank-summary">${bankText || '-'}</div>
             </div>
-            <div class="admin-user-cards">${cardCounts[u.cust_id] || 0} บัตร</div>
-          </div>`
-        ).join('');
+            <div class="admin-user-cards">${totalCards} บัตร ▶</div>
+          </div>`;
+        }).join('');
       } catch (e) {
         container.innerHTML = '<div class="tab-placeholder">เกิดข้อผิดพลาด</div>';
+      }
+    }
+
+    // ⭐ Admin: Open user cards popup
+    async function openAdminUserCards(custId, userName) {
+      document.getElementById('adminUserCardsTitle').textContent = `💳 ${custId} | ${userName}`;
+      document.getElementById('adminUserShowAll').checked = false;
+      document.getElementById('adminUserCardGrid').innerHTML = '<div class="tab-placeholder">กำลังโหลด...</div>';
+      document.getElementById('adminUserCardsModal').classList.remove('hidden');
+
+      try {
+        const { data } = await sb
+          .from('cards')
+          .select('*')
+          .eq('cust_id', custId);
+
+        adminUserCardsAllData = data || [];
+        renderAdminUserCards();
+      } catch (e) {
+        document.getElementById('adminUserCardGrid').innerHTML = '<div class="tab-placeholder">เกิดข้อผิดพลาด</div>';
+      }
+    }
+
+    function renderAdminUserCards() {
+      const showAll = document.getElementById('adminUserShowAll').checked;
+      const cards = showAll
+        ? adminUserCardsAllData
+        : adminUserCardsAllData.filter(c => c.available === true || c.available === 'true' || c.available === 'TRUE');
+
+      if (cards.length === 0) {
+        document.getElementById('adminUserCardGrid').innerHTML = '<div class="tab-placeholder">ไม่มีบัตร</div>';
+        return;
+      }
+
+      document.getElementById('adminUserCardGrid').innerHTML = cards.map(card => {
+        const isAvail = card.available === true || card.available === 'true' || card.available === 'TRUE';
+        const hasImage = card.image_url && card.image_url.startsWith('http');
+        const imgHtml = hasImage ? `<img src="${card.image_url}" class="card-bg-img" onerror="this.style.display='none'">` : '';
+        const noImageClass = hasImage ? '' : 'no-image';
+        const unavailBadge = !isAvail ? '<span class="unavail-badge">🚨ไม่อยู่</span>' : '';
+        const unavailClass = !isAvail ? 'unavailable' : '';
+        const borderColor = isAvail ? 'border-color: #00d084;' : 'border-color: #ef4444;';
+
+        return `<div class="card-btn ${noImageClass} ${unavailClass}" style="${borderColor}"
+              onclick="adminToggleCardAvailable('${card.card_id}', ${isAvail})">
+          ${imgHtml}
+          ${unavailBadge}
+          <div class="card-overlay">
+            <div class="card-name">${truncate(card.card_type, 12)}</div>
+            <div class="card-last4">${card.last4}</div>
+            <div class="card-owner">${truncate(card.full_name, 12)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ⭐ Admin: Toggle card available directly
+    async function adminToggleCardAvailable(cardId, currentAvailable) {
+      const newAvailable = !currentAvailable;
+      const actionText = newAvailable ? 'เปิดใช้งานบัตรนี้?' : 'ปิดใช้งานบัตรนี้?';
+      if (!confirm(actionText)) return;
+
+      try {
+        // 1. Update GAS (Google Sheets)
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'adminUpdateCard',
+            adminUserId: lineProfile.userId,
+            cardId: cardId,
+            updates: { available: newAvailable }
+          })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          // 2. Update Supabase directly for immediate effect
+          await sb.from('cards').update({ available: newAvailable }).eq('card_id', cardId);
+
+          // 3. Update local state
+          const card = adminUserCardsAllData.find(c => c.card_id === cardId);
+          if (card) card.available = newAvailable;
+          renderAdminUserCards();
+        } else {
+          alert('Error: ' + (result.error || 'Unknown'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    // ⭐ Admin: Card image management
+    async function loadAdminCardTypes() {
+      const grid = document.getElementById('adminCardTypeGrid');
+      grid.innerHTML = '<div class="tab-placeholder">กำลังโหลด...</div>';
+
+      try {
+        const { data } = await sb.from('card_types').select('*');
+        const types = data || [];
+
+        // Sort: no image first
+        types.sort((a, b) => {
+          const aHas = a.image_url && a.image_url.startsWith('http') ? 1 : 0;
+          const bHas = b.image_url && b.image_url.startsWith('http') ? 1 : 0;
+          return aHas - bHas;
+        });
+
+        grid.innerHTML = types.map(t => {
+          const hasImage = t.image_url && t.image_url.startsWith('http');
+          const imgHtml = hasImage ? `<img src="${t.image_url}" class="card-bg-img" onerror="this.style.display='none'">` : '';
+          const noImageClass = hasImage ? '' : 'no-image';
+          const noImageBadge = !hasImage ? '<span class="no-image-badge">ไม่มีรูป</span>' : '';
+
+          return `<div class="card-btn ${noImageClass}" onclick="adminUploadCardImage('${(t.card_name || '').replace(/'/g, "\\'")}')">
+            ${imgHtml}
+            ${noImageBadge}
+            <div class="card-overlay">
+              <div class="card-name">${truncate(t.card_name, 12)}</div>
+              <div class="card-last4">${t.bank || '-'}</div>
+            </div>
+          </div>`;
+        }).join('') || '<div class="tab-placeholder">ไม่มีข้อมูลประเภทบัตร</div>';
+      } catch (e) {
+        grid.innerHTML = '<div class="tab-placeholder">เกิดข้อผิดพลาด</div>';
+      }
+    }
+
+    function adminUploadCardImage(cardName) {
+      adminSelectedCardType = cardName;
+      const input = document.getElementById('adminImageUpload');
+      input.value = '';
+      input.click();
+    }
+
+    // File input change handler (set up in init)
+    async function handleCardImageUpload(file) {
+      if (!file || !adminSelectedCardType) return;
+
+      const cardName = adminSelectedCardType;
+      const fileName = `${cardName.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${file.name.split('.').pop()}`;
+
+      try {
+        // 1. Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await sb.storage
+          .from('card-images')
+          .upload(fileName, file, { upsert: true });
+
+        if (uploadError) {
+          alert('อัพโหลดไม่สำเร็จ: ' + uploadError.message);
+          return;
+        }
+
+        // 2. Get public URL
+        const { data: urlData } = sb.storage.from('card-images').getPublicUrl(fileName);
+        const imageUrl = urlData.publicUrl;
+
+        // 3. Update Supabase card_types immediately
+        await sb.from('card_types').update({ image_url: imageUrl }).eq('card_name', cardName);
+
+        // 4. Update GAS (Google Sheets) for persistence through sync
+        fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'adminUpdateCardTypeImage',
+            adminUserId: lineProfile.userId,
+            cardName: cardName,
+            imageUrl: imageUrl
+          })
+        });
+
+        alert(`✅ อัพโหลดรูป ${cardName} สำเร็จ`);
+        loadAdminCardTypes(); // Refresh grid
+      } catch (e) {
+        alert('เกิดข้อผิดพลาด: ' + e.message);
       }
     }
 
@@ -2592,7 +3058,14 @@
         }
         
         hideLoading();
-        
+
+        // Setup card image upload handler
+        document.getElementById('adminImageUpload').addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) {
+            handleCardImageUpload(e.target.files[0]);
+          }
+        });
+
         // Log performance
         const endTime = performance.now();
         console.log(`⚡ Load time: ${Math.round(endTime - startTime)}ms`);
@@ -2705,18 +3178,20 @@
       const avail = allCards.length;
       const total = allCards.length + allUnavailableCards.length;
       document.getElementById('cardCount').textContent = `💳 บัตรที่อยู่ ${avail} / ทั้งหมด ${total}`;
-      const toggleLabel = document.querySelector('.toggle-unavail');
+      const toggleLabel = document.getElementById('unavailToggleLabel');
       if (toggleLabel) toggleLabel.style.display = allUnavailableCards.length > 0 ? 'flex' : 'none';
     }
 
     function renderBankSelection() {
-      const banks = [...new Set(allCards.map(c => c.bank).filter(Boolean))];
-      document.getElementById('bankGrid').innerHTML = banks.map(bank =>
-        `<button class="bank-btn" data-bank="${bank}" onclick="toggleBank('${bank}')">${bank}</button>`
-      ).join('');
+      const availBanks = new Set(allCards.map(c => c.bank).filter(Boolean));
+      document.getElementById('bankGrid').innerHTML = CONFIG.ALLOWED_BANKS.map(bank => {
+        const hasAvail = availBanks.has(bank);
+        const grayClass = hasAvail ? '' : 'bank-btn-gray';
+        return `<button class="bank-btn ${grayClass}" data-bank="${bank}" onclick="toggleBank('${bank}')">${bank}</button>`;
+      }).join('');
       document.getElementById('bankSection').classList.remove('hidden');
-      
-      // ⭐ แสดง Card Section ด้วย (ว่างก่อน)
+
+      // แสดง Card Section ด้วย (ว่างก่อน)
       document.getElementById('cardSection').classList.remove('hidden');
       document.getElementById('cardGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,0.5);font-size:0.8rem;padding:20px;">👆 กรุณาเลือกธนาคารด้านบน</div>';
     }
@@ -3168,6 +3643,7 @@
     
     function closeAddCardModal() {
       document.getElementById('addCardModal').classList.add('hidden');
+      window._addCardMode = null;
     }
     
     function onModalBankChange() {
@@ -3237,9 +3713,15 @@
     }
     
     async function confirmAddCard() {
+      // ⭐ ถ้ามาจาก Tab สถานะ → ส่งคำขอแทนการเพิ่มตรง
+      if (window._addCardMode === 'request') {
+        await confirmAddCardRequest();
+        return;
+      }
+
       const last4 = document.getElementById('modalLast4').value.trim();
       const name = document.getElementById('modalName').value.trim();
-      
+
       if (!modalSelectedType || last4.length !== 4 || !name) {
         alert('กรุณากรอกข้อมูลให้ครบ');
         return;
