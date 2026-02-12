@@ -82,70 +82,77 @@
       text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    /* ── Card Grid (3 columns, same as Extra_Pro) ── */
+    /* ── Card Strip (compact overlapping) ── */
     .card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
+      display: flex;
+      overflow-x: auto;
+      padding: 4px 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
+    .card-grid::-webkit-scrollbar { display: none; }
 
     .card-btn {
       position: relative;
-      aspect-ratio: 1.5;
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 8px;
+      flex-shrink: 0;
+      width: 85px; height: 54px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
       background-color: rgba(255,255,255,0.1);
       cursor: pointer;
       transition: all 0.2s;
       overflow: hidden;
+      margin-left: -12px;
+      box-shadow: -2px 0 6px rgba(0,0,0,0.3);
     }
-    .card-btn:hover { border-color: rgba(255,255,255,0.5); transform: scale(1.02); }
-    .card-btn.selected { border-color: #00d084; box-shadow: 0 0 0 1px rgba(0,208,132,0.5); }
+    .card-btn:first-child { margin-left: 0; }
+    .card-btn:hover { transform: translateY(-3px); z-index: 5; }
+    .card-btn.selected {
+      border-color: #00d084; z-index: 10;
+      transform: translateY(-6px);
+      box-shadow: 0 4px 12px rgba(0,208,132,0.4);
+    }
 
     .card-btn .card-bg-img {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
-      object-fit: cover; border-radius: 6px;
+      object-fit: cover; border-radius: 4px;
     }
 
     .card-btn .card-overlay {
       position: absolute; inset: 0;
       display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      text-align: center;
-      background: rgba(0,0,0,0.45); padding: 2px;
+      justify-content: flex-end; align-items: flex-start;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+      padding: 3px 4px;
     }
     .card-btn .card-name {
-      font-size: 0.55rem; color: #fff; font-weight: 600;
+      font-size: 0.4rem; color: #fff; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       max-width: 95%; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .card-btn .card-last4 {
-      font-size: 0.8rem; color: #fff; font-weight: 700;
-      letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); margin-top: 1px;
+      font-size: 0.6rem; color: #fff; font-weight: 700;
+      letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
-    .card-btn .card-owner {
-      font-size: 0.45rem; color: rgba(255,255,255,0.75);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.9); margin-top: 1px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 95%;
-    }
+    .card-btn .card-owner { display: none; }
     .card-btn.no-image { background: linear-gradient(135deg, #3a3a5c 0%, #2a2a4c 100%); }
-    .card-btn.no-image .card-overlay { background: transparent; }
+    .card-btn.no-image .card-overlay { background: transparent; justify-content: center; align-items: center; }
 
     .card-btn .check-overlay {
       position: absolute; inset: 0;
-      background: rgba(0, 208, 132, 0.7);
+      background: rgba(0, 208, 132, 0.75);
       display: flex; justify-content: center; align-items: center;
-      opacity: 0; transition: opacity 0.2s; border-radius: 6px; z-index: 10;
+      opacity: 0; transition: opacity 0.2s; border-radius: 4px; z-index: 10;
     }
     .card-btn .check-overlay::after {
-      content: '\2713'; font-size: 1.8rem; color: #fff;
+      content: '\2713'; font-size: 1.2rem; color: #fff;
       font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .card-btn.selected .check-overlay { opacity: 1; }
 
     .no-cards-msg {
-      grid-column: 1 / -1; text-align: center;
+      text-align: center; width: 100%;
       color: rgba(255,255,255,0.5); font-size: 0.8rem; padding: 20px;
     }
 
