@@ -64,7 +64,90 @@
       color: rgba(255,255,255,0.8);
       margin-top: 2px;
     }
-    
+
+    .profile-row3Phone {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.7);
+      margin-top: 2px;
+    }
+
+    .profile-bank {
+      flex-shrink: 0;
+      text-align: right;
+      font-size: 0.7rem;
+      min-width: 100px;
+    }
+    .profile-bank-label {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.6rem;
+      margin-bottom: 2px;
+    }
+    .profile-bank-value {
+      color: #4ecdc4;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    .profile-bank-edit {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.6rem;
+      margin-top: 3px;
+      cursor: pointer;
+    }
+
+    /* Status Options (Card Status Modal) */
+    .status-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .status-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: all 0.2s;
+    }
+    .status-option:has(input:checked) {
+      background: rgba(78,205,196,0.2);
+      border-color: #4ecdc4;
+    }
+    .status-option input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #4ecdc4;
+    }
+    .status-modal-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+    .status-modal-card img {
+      width: 60px;
+      height: 40px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+    .status-modal-card-info {
+      flex: 1;
+      font-size: 0.8rem;
+      color: #fff;
+    }
+
     /* Section */
     .section-box {
       background: rgba(255,255,255,0.1);
@@ -1641,9 +1724,15 @@
         <div class="profile-info">
           <div class="profile-row1" id="profileRow1">-</div>
           <div class="profile-row2" id="profileRow2">-</div>
-          <div class="profile-row3" id="profileRow3">
+          <div class="profile-row3" id="profileRow3Phone"></div>
+          <div class="profile-row4" id="profileRow3">
             <span id="cardCount"></span>
           </div>
+        </div>
+        <div class="profile-bank" id="profileBankSection">
+          <div class="profile-bank-label">บัญชีสำหรับรับเงิน</div>
+          <div class="profile-bank-value" id="profileBankValue">-</div>
+          <button class="profile-bank-edit" onclick="openBankAccountModal()">แก้ไข</button>
         </div>
       </div>
       
@@ -1667,7 +1756,6 @@
           </div>
           <div id="statusCardGrid" class="card-grid"></div>
         </div>
-        <div id="cardDetailPanel"></div>
       </div>
 
       <!-- ===== Tab: แจ้งคืนบัตร ===== -->
@@ -1985,6 +2073,51 @@
     </div>
   </div>
 
+  <!-- ⭐ Modal แก้ไขสถานะบัตร (3 ตัวเลือก) -->
+  <div id="cardStatusModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">แก้ไขสถานะบัตร</div>
+      <div class="modal-body">
+        <div id="statusModalCardInfo"></div>
+        <div class="status-options">
+          <label class="status-option"><input type="radio" name="cardStatusOption" value="with_team"> บัตรอยู่กับทีมงาน</label>
+          <label class="status-option"><input type="radio" name="cardStatusOption" value="with_customer"> บัตรอยู่กับตัว</label>
+          <label class="status-option"><input type="radio" name="cardStatusOption" value="expired"> บัตรหมดอายุ</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="closeCardStatusModal()">ยกเลิก</button>
+        <button class="modal-btn modal-btn-confirm" onclick="submitCardStatusChange()">ส่งคำขอ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⭐ Modal แก้ไขบัญชีธนาคาร -->
+  <div id="bankAccountModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">แก้ไขบัญชีธนาคาร</div>
+      <div class="modal-body">
+        <div class="modal-row" style="flex-direction:column;gap:8px;">
+          <div>
+            <span class="modal-label">ธนาคาร:</span>
+            <span style="font-weight:600;color:#fff;">ไทยพาณิชย์ (SCB)</span>
+          </div>
+          <div>
+            <span class="modal-label">เลขที่บัญชี:</span>
+            <input type="tel" id="bankAccountInput" class="modal-input" maxlength="15" placeholder="เลขที่บัญชี">
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#999;line-height:1.4;">
+          * ทีมงานขอสงวนสิทธิ์ใช้แค่ธนาคารไทยพาณิชย์ เพื่อประหยัดค่าใช้จ่ายในการโอน
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="closeBankAccountModal()">ยกเลิก</button>
+        <button class="modal-btn modal-btn-confirm" onclick="saveBankAccount()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ═══════════════════════════════════════════════════════════════
     // ⚠️ CONFIG - แก้ไขตรงนี้!
@@ -2153,57 +2286,75 @@
       const card = allCardsList.find(c => c.card_id === cardId);
       if (!card) return;
 
-      const isUnavail = !card.available;
+      window._statusCardId = cardId;
+
       const hasImg = card.image_url && card.image_url.startsWith('http');
       const imgHtml = hasImg
-        ? `<img class="detail-img" src="${card.image_url}" onerror="this.style.display='none'">`
-        : `<div class="detail-img"></div>`;
-      const statusText = isUnavail ? '❌ ไม่อยู่กับทีมงาน' : '✅ อยู่กับทีมงาน';
-      const toggleText = isUnavail ? 'ขอนำบัตรกลับมาฝาก' : 'ขอรับบัตรคืน';
+        ? `<img src="${card.image_url}" onerror="this.style.display='none'">`
+        : '';
+      const statusText = card.available ? '✅ อยู่กับทีมงาน' : '❌ ไม่อยู่กับทีมงาน';
 
-      const html = `<div class="card-detail-panel">
-        <div class="detail-header">
-          ${imgHtml}
-          <div>
-            <div class="detail-title">${card.card_type}</div>
-            <div class="detail-sub">${card.last4} | ${card.full_name || '-'}</div>
+      document.getElementById('statusModalCardInfo').innerHTML = `
+        <div class="status-modal-card">
+          ${imgHtml ? `<div>${imgHtml}</div>` : ''}
+          <div class="status-modal-card-info">
+            <div style="font-weight:600;">${card.card_type}</div>
+            <div style="font-size:0.7rem;opacity:0.8;">${card.last4} | ${card.full_name || '-'} | ${card.bank || '-'}</div>
+            <div style="font-size:0.7rem;margin-top:2px;">${statusText}</div>
           </div>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Card ID</span>
-          <span class="detail-value">${card.card_id}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">ธนาคาร</span>
-          <span class="detail-value">${card.bank || '-'}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">สถานะ</span>
-          <span class="detail-value">${statusText}</span>
-        </div>
-        <div class="detail-actions">
-          <button class="detail-btn detail-btn-close" onclick="document.getElementById('cardDetailPanel').innerHTML=''">ปิด</button>
-          <button class="detail-btn detail-btn-primary" onclick="submitCardRequest('${card.card_id}', '${isUnavail ? 'request_return' : 'request_available'}')">${toggleText}</button>
-        </div>
-        <div class="pending-note" style="display:none;" id="pendingNote_${card.card_id}">⏳ คำขอถูกส่งแล้ว รอ Admin อนุมัติ</div>
-      </div>`;
+        </div>`;
 
-      document.getElementById('cardDetailPanel').innerHTML = html;
-      document.getElementById('cardDetailPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // Pre-select radio matching current status
+      const radios = document.querySelectorAll('input[name="cardStatusOption"]');
+      radios.forEach(r => r.checked = false);
+      if (card.available) {
+        document.querySelector('input[name="cardStatusOption"][value="with_team"]').checked = true;
+      } else {
+        document.querySelector('input[name="cardStatusOption"][value="with_customer"]').checked = true;
+      }
+
+      document.getElementById('cardStatusModal').classList.remove('hidden');
     }
 
-    async function submitCardRequest(cardId, requestType) {
-      try {
-        const allCardsList = [...(allCards || []), ...(allUnavailableCards || [])];
-        const card = allCardsList.find(c => c.card_id === cardId);
-        if (!card) return;
+    function closeCardStatusModal() {
+      document.getElementById('cardStatusModal').classList.add('hidden');
+      window._statusCardId = null;
+    }
 
+    async function submitCardStatusChange() {
+      const cardId = window._statusCardId;
+      if (!cardId) return;
+
+      const selected = document.querySelector('input[name="cardStatusOption"]:checked');
+      if (!selected) { alert('กรุณาเลือกสถานะ'); return; }
+
+      const allCardsList = [...(allCards || []), ...(allUnavailableCards || [])];
+      const card = allCardsList.find(c => c.card_id === cardId);
+      if (!card) return;
+
+      const option = selected.value;
+      var newAvailable, newStatus;
+      if (option === 'with_team') {
+        newAvailable = true;
+        newStatus = '';
+      } else if (option === 'with_customer') {
+        newAvailable = false;
+        newStatus = '';
+      } else {
+        // expired
+        newAvailable = false;
+        newStatus = 'หมดอายุ';
+      }
+
+      try {
         const body = {
           action: 'submitCardRequest',
           custId: customerInfo.cust_id,
           cardId: cardId,
-          requestType: requestType,
+          requestType: 'change_status',
           currentAvailable: card.available,
+          newAvailable: newAvailable,
+          newStatus: newStatus,
           lineUserId: lineProfile.userId,
           displayName: lineProfile.displayName
         };
@@ -2216,11 +2367,8 @@
         const result = await res.json();
 
         if (result.success) {
-          const noteEl = document.getElementById('pendingNote_' + cardId);
-          if (noteEl) noteEl.style.display = '';
-          // Disable the button
-          const btn = document.querySelector('.detail-btn-primary');
-          if (btn) { btn.disabled = true; btn.textContent = '✅ ส่งคำขอแล้ว'; }
+          closeCardStatusModal();
+          alert('✅ ส่งคำขอแล้ว รอ Admin อนุมัติ');
         } else {
           alert('เกิดข้อผิดพลาด: ' + (result.error || result.message));
         }
@@ -2237,12 +2385,12 @@
     let returnPickupTime = null;
 
     var returnSelectedCardIds = new Set();
-    var returnSelectedBank = null;
+    var returnSelectedBanks = new Set();
 
     function loadReturnTab() {
       const availCards = allCards || [];
       returnSelectedCardIds = new Set();
-      returnSelectedBank = null;
+      returnSelectedBanks = new Set();
 
       // Show bank selection if many cards
       const bankSection = document.getElementById('returnBankSection');
@@ -2252,7 +2400,8 @@
         document.getElementById('returnBankGrid').innerHTML = banks.map(bank =>
           `<button class="bank-btn" data-bank="${bank}" onclick="toggleReturnBank('${bank}')">${bank}</button>`
         ).join('');
-        document.getElementById('returnCardGrid').innerHTML = '<div class="tab-placeholder">เลือกธนาคารก่อน</div>';
+        // Show all cards initially (no bank pre-selected)
+        renderReturnCards(availCards);
       } else {
         bankSection.classList.add('hidden');
         renderReturnCards(availCards);
@@ -2294,12 +2443,19 @@
     }
 
     function toggleReturnBank(bank) {
-      const btns = document.querySelectorAll('#returnBankGrid .bank-btn');
-      btns.forEach(b => b.classList.toggle('selected', b.dataset.bank === bank));
-      returnSelectedBank = bank;
-      returnSelectedCardIds = new Set();
-
-      const bankCards = (allCards || []).filter(c => c.bank === bank);
+      if (returnSelectedBanks.has(bank)) {
+        returnSelectedBanks.delete(bank);
+      } else {
+        returnSelectedBanks.add(bank);
+      }
+      // Update visual
+      document.querySelectorAll('#returnBankGrid .bank-btn').forEach(b => {
+        b.classList.toggle('selected', returnSelectedBanks.has(b.dataset.bank));
+      });
+      // Show cards from ALL selected banks (keep existing card selections)
+      const bankCards = returnSelectedBanks.size > 0
+        ? (allCards || []).filter(c => returnSelectedBanks.has(c.bank))
+        : (allCards || []);
       renderReturnCards(bankCards);
     }
 
@@ -2549,6 +2705,7 @@
     let adminUserCardsData = [];
     let adminUserCardsAllData = [];
     let adminSelectedCardType = null;
+    let adminAllUsers = null; // cache for all users
 
     function switchAdminSubTab(subtab, btn) {
       adminCurrentSubTab = subtab;
@@ -2560,6 +2717,7 @@
         document.getElementById('adminSubRequests').classList.remove('hidden');
       } else if (subtab === 'users') {
         document.getElementById('adminSubUsers').classList.remove('hidden');
+        loadAllAdminUsers();
       } else if (subtab === 'images') {
         document.getElementById('adminSubImages').classList.remove('hidden');
         loadAdminCardTypes();
@@ -2732,37 +2890,27 @@
       }
     }
 
-    async function searchAdminUsers() {
-      const query = document.getElementById('adminUserSearch').value.trim().toLowerCase();
-      if (!query) return;
+    async function loadAllAdminUsers() {
+      if (adminAllUsers) {
+        renderAdminUserList(adminAllUsers.users, adminAllUsers.bankSummary);
+        return;
+      }
 
       const container = document.getElementById('adminUserList');
-      container.innerHTML = '<div class="tab-placeholder">กำลังค้นหา...</div>';
+      container.innerHTML = '<div class="tab-placeholder">กำลังโหลดผู้ใช้...</div>';
 
       try {
-        // Search from Supabase users
-        const { data: users } = await sb
-          .from('users')
-          .select('*');
+        const [usersRes, cardsRes] = await Promise.all([
+          sb.from('users').select('*'),
+          sb.from('cards').select('cust_id, bank, available')
+        ]);
 
-        const filtered = (users || []).filter(u =>
-          (u.cust_id || '').toLowerCase().includes(query) ||
-          (u.full_name || '').toLowerCase().includes(query) ||
-          (u.display_name || '').toLowerCase().includes(query) ||
-          (u.phone || '').includes(query)
-        ).slice(0, 20);
+        const users = usersRes.data || [];
+        const allCardsData = cardsRes.data || [];
 
-        if (filtered.length === 0) {
-          container.innerHTML = '<div class="tab-placeholder">ไม่พบผู้ใช้</div>';
-          return;
-        }
-
-        // Get all cards with bank info for summary
-        const { data: allCardsData } = await sb.from('cards').select('cust_id, bank, available');
-
-        // Build bank summary per user: "KCC(3/5) SCB(2/2)"
+        // Build bank summary per user
         const userBankSummary = {};
-        (allCardsData || []).forEach(c => {
+        allCardsData.forEach(c => {
           if (!userBankSummary[c.cust_id]) userBankSummary[c.cust_id] = {};
           if (!userBankSummary[c.cust_id][c.bank]) userBankSummary[c.cust_id][c.bank] = { avail: 0, total: 0 };
           userBankSummary[c.cust_id][c.bank].total++;
@@ -2771,22 +2919,69 @@
           }
         });
 
-        container.innerHTML = filtered.map(u => {
-          const banks = userBankSummary[u.cust_id] || {};
-          const bankText = Object.entries(banks).map(([b, v]) => `${b}(${v.avail}/${v.total})`).join(' ');
-          const totalCards = Object.values(banks).reduce((s, v) => s + v.total, 0);
-
-          return `<div class="admin-user-item" style="cursor:pointer;" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${(u.display_name || u.full_name || '-').replace(/'/g, "\\'")}')">
-            <div>
-              <div class="admin-user-info">${u.cust_id} | ${u.display_name || '-'}</div>
-              <div class="admin-user-sub">${u.full_name || '-'} | ${u.phone || '-'}</div>
-              <div class="admin-user-bank-summary">${bankText || '-'}</div>
-            </div>
-            <div class="admin-user-cards">${totalCards} บัตร ▶</div>
-          </div>`;
-        }).join('');
+        adminAllUsers = { users, bankSummary: userBankSummary };
+        renderAdminUserList(users, userBankSummary);
       } catch (e) {
         container.innerHTML = '<div class="tab-placeholder">เกิดข้อผิดพลาด</div>';
+      }
+    }
+
+    function renderAdminUserList(users, bankSummary) {
+      const container = document.getElementById('adminUserList');
+      if (users.length === 0) {
+        container.innerHTML = '<div class="tab-placeholder">ไม่พบผู้ใช้</div>';
+        return;
+      }
+
+      container.innerHTML = users.map(u => {
+        const banks = bankSummary[u.cust_id] || {};
+        const bankText = Object.entries(banks).map(([b, v]) => `${b}(${v.avail}/${v.total})`).join(' ');
+        const totalCards = Object.values(banks).reduce((s, v) => s + v.total, 0);
+
+        return `<div class="admin-user-item" style="cursor:pointer;" onclick="openAdminUserCards('${(u.cust_id || '').replace(/'/g, "\\'")}', '${(u.display_name || u.full_name || '-').replace(/'/g, "\\'")}')">
+          <div>
+            <div class="admin-user-info">${u.cust_id} | ${u.display_name || '-'}</div>
+            <div class="admin-user-sub">${u.full_name || '-'} | ${u.phone || '-'}</div>
+            <div class="admin-user-bank-summary">${bankText || '-'}</div>
+          </div>
+          <div class="admin-user-cards">${totalCards} บัตร ▶</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function searchAdminUsers() {
+      const query = document.getElementById('adminUserSearch').value.trim().toLowerCase();
+
+      // If empty query, show all users
+      if (!query) {
+        if (adminAllUsers) {
+          renderAdminUserList(adminAllUsers.users, adminAllUsers.bankSummary);
+        }
+        return;
+      }
+
+      // Filter from cache if available
+      if (adminAllUsers) {
+        const filtered = adminAllUsers.users.filter(u =>
+          (u.cust_id || '').toLowerCase().includes(query) ||
+          (u.full_name || '').toLowerCase().includes(query) ||
+          (u.display_name || '').toLowerCase().includes(query) ||
+          (u.phone || '').includes(query)
+        );
+        renderAdminUserList(filtered, adminAllUsers.bankSummary);
+        return;
+      }
+
+      // Fallback: load then filter
+      await loadAllAdminUsers();
+      if (adminAllUsers) {
+        const filtered = adminAllUsers.users.filter(u =>
+          (u.cust_id || '').toLowerCase().includes(query) ||
+          (u.full_name || '').toLowerCase().includes(query) ||
+          (u.display_name || '').toLowerCase().includes(query) ||
+          (u.phone || '').includes(query)
+        );
+        renderAdminUserList(filtered, adminAllUsers.bankSummary);
       }
     }
 
@@ -3170,8 +3365,67 @@
       document.getElementById('profileImg').src = lineProfile.pictureUrl || '';
       document.getElementById('profileRow1').textContent = `${customerInfo.cust_id} | ${lineProfile.displayName}`;
       document.getElementById('profileRow2').textContent = customerInfo.full_name || customerInfo.name_on_card || '-';
+      // Phone
+      const phone = customerInfo.phone || '-';
+      document.getElementById('profileRow3Phone').textContent = phone !== '-' ? `📱 ${phone}` : '';
+      // Bank account
+      const bankName = customerInfo.bank_name || '';
+      const bankAccount = customerInfo.bank_account || '';
+      if (bankName || bankAccount) {
+        document.getElementById('profileBankValue').textContent = `${bankName || 'SCB'} ${bankAccount}`;
+      } else {
+        document.getElementById('profileBankValue').textContent = 'ยังไม่ได้ตั้งค่า';
+      }
       document.getElementById('profileSection').classList.remove('hidden');
       updateCardCount();
+    }
+
+    function openBankAccountModal() {
+      const bankAccount = customerInfo.bank_account || '';
+      document.getElementById('bankAccountInput').value = bankAccount;
+      document.getElementById('bankAccountModal').classList.remove('hidden');
+    }
+
+    function closeBankAccountModal() {
+      document.getElementById('bankAccountModal').classList.add('hidden');
+    }
+
+    async function saveBankAccount() {
+      const bankAccount = document.getElementById('bankAccountInput').value.trim();
+      if (!bankAccount) { alert('กรุณากรอกเลขที่บัญชี'); return; }
+
+      try {
+        const body = {
+          action: 'updateBankAccount',
+          lineUserId: lineProfile.userId,
+          custId: customerInfo.cust_id,
+          bankName: 'SCB',
+          bankAccount: bankAccount
+        };
+
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(body)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          // Update Supabase directly too
+          await sb.from('users').update({ bank_name: 'SCB', bank_account: bankAccount }).eq('cust_id', customerInfo.cust_id);
+
+          // Update local state
+          customerInfo.bank_name = 'SCB';
+          customerInfo.bank_account = bankAccount;
+          document.getElementById('profileBankValue').textContent = `SCB ${bankAccount}`;
+          closeBankAccountModal();
+          alert('✅ บันทึกบัญชีเรียบร้อย');
+        } else {
+          alert('เกิดข้อผิดพลาด: ' + (result.error || 'Unknown'));
+        }
+      } catch (e) {
+        alert('เกิดข้อผิดพลาด: ' + e.message);
+      }
     }
 
     function updateCardCount() {
