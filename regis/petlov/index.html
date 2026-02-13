@@ -461,22 +461,16 @@
     }
     .history-card .hc-card-overlay {
       position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 16px 8px 5px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.75));
+      padding: 6px 8px;
+      background: rgba(40,40,40,0.8);
     }
     .history-card .hc-type {
-      font-size: 0.55rem; color: #fff; font-weight: 600;
+      font-size: 0.75rem; color: #fff; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-    }
-    .history-card .hc-last4 {
-      font-size: 0.5rem; color: rgba(255,255,255,0.75);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
     .history-card .hc-name {
-      font-size: 0.42rem; color: rgba(255,255,255,0.6);
+      font-size: 0.6rem; color: rgba(255,255,255,0.7);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
     .history-card .hc-bottom { padding: 5px 8px 6px; text-align: center; }
     .history-card .hc-amount {
@@ -488,12 +482,12 @@
     }
 
     .history-card .gear-btn {
-      position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
-      border-radius: 50%; background: rgba(255,255,255,0.1); border: none;
-      color: rgba(255,255,255,0.5); font-size: 0.65rem; cursor: pointer;
+      position: absolute; top: 6px; right: 6px; width: 24px; height: 24px;
+      border-radius: 50%; background: rgba(0,0,0,0.55); border: none;
+      color: rgba(255,255,255,0.9); font-size: 0.7rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
     }
-    .history-card .gear-btn:active { background: rgba(255,255,255,0.25); }
+    .history-card .gear-btn:active { background: rgba(0,0,0,0.75); }
 
     /* Edit overlay */
     .history-card .edit-overlay {
@@ -1341,9 +1335,8 @@ function renderHistory() {
       html += '<div class="hc-no-img">' + truncate(item.cardType, 10) + '</div>';
     }
     html += '<div class="hc-card-overlay">';
-    html += '<div class="hc-type">' + truncate(item.cardType, 18) + '</div>';
-    html += '<div class="hc-last4">****' + (item.last4 || '') + '</div>';
-    html += '<div class="hc-name">' + truncate(item.fullName, 18) + '</div>';
+    html += '<div class="hc-type">' + truncate(item.cardType, 14) + ' ' + (item.last4 || '') + '</div>';
+    html += '<div class="hc-name">' + truncate(item.fullName, 20) + '</div>';
     html += '</div>';
     html += '</div>';
 
