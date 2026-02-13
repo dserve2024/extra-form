@@ -520,7 +520,6 @@
       font-size: 0.55rem; font-family: 'Prompt', sans-serif; cursor: pointer; font-weight: 500;
     }
     .edit-overlay .btn-save { background: #4ecdc4; color: #fff; }
-    .edit-overlay .btn-delete { background: rgba(239,68,68,0.7); color: #fff; }
     .edit-overlay .btn-cancel { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
 
     .history-empty {
@@ -1365,7 +1364,6 @@ function renderHistory() {
       html += '<div class="edit-actions">';
       html += '<button class="btn-cancel" onclick="event.stopPropagation();toggleEditMode(' + i + ')">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button>';
       html += '<button class="btn-save" onclick="event.stopPropagation();saveHistoryAmount(' + i + ')">\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button>';
-      html += '<button class="btn-delete" onclick="event.stopPropagation();deleteHistoryCard(' + i + ')">\u0e25\u0e1a</button>';
       html += '</div>';
       html += '</div>';
     }
@@ -1397,7 +1395,12 @@ function historyStepAmount(idx, direction) {
   if (!input) return;
   var current = parseAmount(input.value) || CONFIG.DEFAULT_AMOUNT;
   var next = current + (direction * CONFIG.STEP_AMOUNT);
-  if (next < CONFIG.STEP_AMOUNT) next = CONFIG.STEP_AMOUNT;
+  if (next <= 0) {
+    if (confirm('\u0e25\u0e1a\u0e1a\u0e31\u0e15\u0e23\u0e19\u0e35\u0e49\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23?')) {
+      deleteHistoryCard(idx);
+    }
+    return;
+  }
   if (next > CONFIG.MAX_AMOUNT) next = CONFIG.MAX_AMOUNT;
   input.value = formatNumber(next);
   updateHistoryTotal(idx, next);
