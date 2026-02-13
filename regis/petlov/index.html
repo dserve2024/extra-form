@@ -317,6 +317,13 @@
       background: rgba(255,255,255,0.08); color: #fff;
       font-family: 'Prompt', sans-serif; font-size: 0.8rem; outline: none;
     }
+    .confirm-box { background: #2a2a4c; border-radius: 14px; padding: 20px 18px; width: 85%; max-width: 300px; text-align: center; border: 1px solid rgba(255,255,255,0.15); }
+    .confirm-box .confirm-msg { font-size: 0.8rem; color: #fff; margin-bottom: 16px; white-space: pre-line; line-height: 1.5; }
+    .confirm-box .confirm-actions { display: flex; gap: 10px; }
+    .confirm-box .confirm-actions button { flex: 1; padding: 10px 0; border-radius: 10px; border: none; font-family: 'Prompt',sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .confirm-box .btn-cf-cancel { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+    .confirm-box .btn-cf-ok { background: #4ecdc4; color: #1a1a2e; }
+
     .type-btn-grid {
       display: grid; grid-template-columns: repeat(3, 1fr);
       gap: 6px; margin-bottom: 10px; max-height: 280px; overflow-y: auto;
@@ -686,6 +693,17 @@
   </div>
 </div>
 
+<!-- Confirm Modal -->
+<div id="confirmModal" class="modal-overlay hidden">
+  <div class="confirm-box">
+    <div id="confirmMsg" class="confirm-msg"></div>
+    <div class="confirm-actions">
+      <button class="btn-cf-cancel" id="confirmNo">ยกเลิก</button>
+      <button class="btn-cf-ok" id="confirmYes">ตกลง</button>
+    </div>
+  </div>
+</div>
+
 <!-- Add Card Modal -->
 <div id="addCardModal" class="modal-overlay hidden" onclick="if(event.target===this)closeAddCardModal()">
   <div class="modal-box">
@@ -769,6 +787,16 @@ function showToast(msg, type) {
   toast.textContent = msg;
   document.body.appendChild(toast);
   setTimeout(function() { toast.remove(); }, 3000);
+}
+
+function showConfirm(msg) {
+  return new Promise(function(resolve) {
+    var modal = document.getElementById('confirmModal');
+    document.getElementById('confirmMsg').textContent = msg;
+    modal.classList.remove('hidden');
+    document.getElementById('confirmYes').onclick = function() { modal.classList.add('hidden'); resolve(true); };
+    document.getElementById('confirmNo').onclick = function() { modal.classList.add('hidden'); resolve(false); };
+  });
 }
 
 function formatNumber(num) {
@@ -1394,15 +1422,14 @@ function toggleEditMode(idx) {
   }
 }
 
-function historyStepAmount(idx, direction) {
+async function historyStepAmount(idx, direction) {
   var input = document.getElementById('hedit_' + idx);
   if (!input) return;
   var current = parseAmount(input.value) || CONFIG.DEFAULT_AMOUNT;
   var next = current + (direction * CONFIG.STEP_AMOUNT);
   if (next <= 0) {
-    if (confirm('\u0e25\u0e1a\u0e1a\u0e31\u0e15\u0e23\u0e19\u0e35\u0e49\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23?')) {
-      deleteHistoryCard(idx);
-    }
+    var ok = await showConfirm('\u0e25\u0e1a\u0e1a\u0e31\u0e15\u0e23\u0e19\u0e35\u0e49\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23?');
+    if (ok) deleteHistoryCard(idx);
     return;
   }
   if (next > CONFIG.MAX_AMOUNT) next = CONFIG.MAX_AMOUNT;
@@ -1472,7 +1499,8 @@ async function deleteHistoryCard(idx) {
   var item = historyData[idx];
   if (!item) return;
 
-  if (!confirm('\u0e25\u0e1a ' + item.cardType + ' ' + item.last4 + ' ?')) return;
+  var ok = await showConfirm('\u0e25\u0e1a ' + item.cardType + ' ' + item.last4 + ' ?');
+  if (!ok) return;
 
   showToast('\u0e01\u0e33\u0e25\u0e31\u0e07\u0e25\u0e1a...', 'warning');
 
@@ -1554,7 +1582,8 @@ async function batchDeleteCards() {
   if (idxList.length === 0) return;
 
   var names = idxList.map(function(i) { return historyData[i].cardType + ' ' + historyData[i].last4; });
-  if (!confirm('\u0e25\u0e1a ' + idxList.length + ' \u0e43\u0e1a?\n' + names.join('\n'))) return;
+  var ok = await showConfirm('\u0e25\u0e1a ' + idxList.length + ' \u0e43\u0e1a?\n' + names.join('\n'));
+  if (!ok) return;
 
   showToast('\u0e01\u0e33\u0e25\u0e31\u0e07\u0e25\u0e1a ' + idxList.length + ' \u0e43\u0e1a...', 'warning');
 
