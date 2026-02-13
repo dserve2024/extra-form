@@ -1130,7 +1130,12 @@ async function loadHistory() {
 function renderHistory() {
   if (!historyData || historyData.length === 0) return;
 
-  var total = historyData.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
+  // Calculate total, excluding cards selected for deletion
+  var total = 0;
+  for (var t = 0; t < historyData.length; t++) {
+    if (selectMode && selectedForDelete[t]) continue;
+    total += Number(historyData[t].amount || 0);
+  }
   document.getElementById('historyTotalAmount').textContent = formatNumber(total) + ' \u0e3f';
 
   // Update multi-select button state
@@ -1201,10 +1206,15 @@ function renderHistory() {
 function toggleEditMode(idx) {
   var card = document.getElementById('hcard_' + idx);
   if (!card) return;
+  var wasEditing = card.classList.contains('editing');
   card.classList.toggle('editing');
-  if (card.classList.contains('editing') && historyData[idx]) {
+  if (!wasEditing && historyData[idx]) {
+    // Opening edit: set input to current amount
     var input = document.getElementById('hedit_' + idx);
     if (input) input.value = formatNumber(historyData[idx].amount);
+  } else if (wasEditing) {
+    // Closing edit (cancel): revert total to original
+    updateHistoryTotal(-1, 0);
   }
 }
 
@@ -1223,6 +1233,7 @@ function updateHistoryTotal(editingIdx, editingAmount) {
   if (!historyData) return;
   var total = 0;
   for (var i = 0; i < historyData.length; i++) {
+    if (selectMode && selectedForDelete[i]) continue; // หักยอดบัตรที่เลือกลบ
     total += (i === editingIdx) ? editingAmount : Number(historyData[i].amount || 0);
   }
   document.getElementById('historyTotalAmount').textContent = formatNumber(total) + ' \u0e3f';
@@ -1328,9 +1339,12 @@ function toggleSelectCard(idx) {
 }
 
 function updateBatchCount() {
-  var count = Object.keys(selectedForDelete).length;
+  var keys = Object.keys(selectedForDelete);
+  var count = keys.length;
+  var delTotal = 0;
+  keys.forEach(function(k) { delTotal += Number(historyData[k].amount || 0); });
   var el = document.getElementById('batchCount');
-  if (el) el.textContent = '\u0e40\u0e25\u0e37\u0e2d\u0e01 ' + count + ' \u0e43\u0e1a';
+  if (el) el.textContent = '\u0e40\u0e25\u0e37\u0e2d\u0e01 ' + count + ' \u0e43\u0e1a' + (delTotal > 0 ? ' (-' + formatNumber(delTotal) + '\u0e3f)' : '');
   var btn = document.getElementById('btnBatchDelete');
   if (btn) btn.disabled = count === 0;
 }
