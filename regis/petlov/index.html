@@ -1379,14 +1379,18 @@ function toggleEditMode(idx) {
   var card = document.getElementById('hcard_' + idx);
   if (!card) return;
   var wasEditing = card.classList.contains('editing');
-  card.classList.toggle('editing');
+
+  // Close any other editing card first
+  var allEditing = document.querySelectorAll('.history-card.editing');
+  allEditing.forEach(function(el) {
+    el.classList.remove('editing');
+  });
+  updateHistoryTotal(-1, 0);
+
   if (!wasEditing && historyData[idx]) {
-    // Opening edit: set input to current amount
+    card.classList.add('editing');
     var input = document.getElementById('hedit_' + idx);
     if (input) input.value = formatNumber(historyData[idx].amount);
-  } else if (wasEditing) {
-    // Closing edit (cancel): revert total to original
-    updateHistoryTotal(-1, 0);
   }
 }
 
