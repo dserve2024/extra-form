@@ -459,21 +459,28 @@
       align-items: center; justify-content: center;
       font-size: 0.55rem; color: rgba(255,255,255,0.2);
     }
-    .history-card .hc-info { padding: 6px 8px 8px; position: relative; }
+    .history-card .hc-card-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 16px 8px 5px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    }
     .history-card .hc-type {
-      font-size: 0.55rem; color: rgba(255,255,255,0.7);
+      font-size: 0.55rem; color: #fff; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      padding-right: 22px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     }
-    .history-card .hc-last4 { font-size: 0.5rem; color: rgba(255,255,255,0.4); }
+    .history-card .hc-last4 {
+      font-size: 0.5rem; color: rgba(255,255,255,0.75);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
     .history-card .hc-name {
-      font-size: 0.45rem; color: rgba(255,255,255,0.35);
+      font-size: 0.42rem; color: rgba(255,255,255,0.6);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      margin-bottom: 2px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
+    .history-card .hc-bottom { padding: 5px 8px 6px; text-align: center; }
     .history-card .hc-amount {
       font-size: 1.1rem; font-weight: 700; color: #4ecdc4;
-      text-align: center; margin-top: 1px;
     }
     .history-card .hc-swiped {
       display: inline-block; font-size: 0.45rem; color: #00d084;
@@ -1325,14 +1332,19 @@ function renderHistory() {
     }
     html += '>';
 
-    // Card image at top
+    // Card image with overlay info
     var typeInfo = cardTypesMap[item.cardType];
     html += '<div class="hc-img-wrap">';
     if (typeInfo && typeInfo.image_url) {
-      html += '<img src="' + typeInfo.image_url + '" onerror="this.parentNode.innerHTML=\'<div class=hc-no-img>' + truncate(item.cardType, 10) + '</div>\'">';
+      html += '<img src="' + typeInfo.image_url + '" onerror="this.parentNode.querySelector(\'.hc-card-overlay\').style.background=\'linear-gradient(135deg,#1a1a2e,#16213e)\';this.remove()">';
     } else {
       html += '<div class="hc-no-img">' + truncate(item.cardType, 10) + '</div>';
     }
+    html += '<div class="hc-card-overlay">';
+    html += '<div class="hc-type">' + truncate(item.cardType, 18) + '</div>';
+    html += '<div class="hc-last4">****' + (item.last4 || '') + '</div>';
+    html += '<div class="hc-name">' + truncate(item.fullName, 18) + '</div>';
+    html += '</div>';
     html += '</div>';
 
     // Checkbox (shown only in select mode for non-swiped cards)
@@ -1343,12 +1355,8 @@ function renderHistory() {
       html += '<button class="gear-btn" onclick="event.stopPropagation();toggleEditMode(' + i + ')">&#9881;</button>';
     }
 
-    html += '<div class="hc-info">';
-    html += '<div class="hc-type">' + truncate(item.cardType, 18) + '</div>';
-    html += '<div class="hc-last4">****' + (item.last4 || '') + '</div>';
-    html += '<div class="hc-name">' + truncate(item.fullName, 18) + '</div>';
+    html += '<div class="hc-bottom">';
     html += '<div class="hc-amount">' + formatNumber(item.amount) + ' \u0e3f</div>';
-
     if (isSwiped) {
       html += '<div class="hc-swiped">\u0e23\u0e39\u0e14\u0e41\u0e25\u0e49\u0e27</div>';
     }
