@@ -447,6 +447,11 @@
       border: 1px solid rgba(255,255,255,0.1); position: relative;
       transition: all 0.2s; overflow: hidden; min-height: 90px;
     }
+    .history-card .hc-bg-img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; opacity: 0.15; border-radius: 10px;
+      pointer-events: none;
+    }
     .history-card .hc-type {
       font-size: 0.6rem; color: rgba(255,255,255,0.7);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -487,17 +492,18 @@
     .edit-overlay .edit-stepper {
       display: flex; align-items: center; gap: 0;
       border-radius: 6px; overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.2); height: 30px; width: 100%;
+      border: 1px solid rgba(255,255,255,0.2); height: 36px; width: 100%;
     }
     .edit-overlay .edit-step-btn {
-      width: 30px; height: 30px; background: rgba(255,255,255,0.12); border: none;
-      color: #fff; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      width: 40px; height: 36px; background: rgba(255,255,255,0.15); border: none;
+      color: #fff; font-size: 1.1rem; font-weight: 700; cursor: pointer;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .edit-overlay .edit-step-btn:active { background: rgba(255,255,255,0.25); }
+    .edit-overlay .edit-step-btn:active { background: rgba(255,255,255,0.3); }
     .edit-overlay .edit-amt-val {
-      flex: 1; text-align: center; color: #4ecdc4; font-size: 0.65rem; font-weight: 600;
+      flex: 1; text-align: center; color: #4ecdc4; font-size: 0.6rem; font-weight: 600;
       background: transparent; border: none; outline: none; font-family: 'Prompt', sans-serif;
+      min-width: 0; padding: 0 2px;
     }
     .edit-overlay .edit-actions { display: flex; gap: 5px; width: 100%; }
     .edit-overlay .edit-actions button {
@@ -1310,6 +1316,12 @@ function renderHistory() {
       html += ' onclick="toggleSelectCard(' + i + ')"';
     }
     html += '>';
+
+    // Card background image
+    var typeInfo = cardTypesMap[item.cardType];
+    if (typeInfo && typeInfo.image_url) {
+      html += '<img src="' + typeInfo.image_url + '" class="hc-bg-img" onerror="this.style.display=\'none\'">';
+    }
 
     // Checkbox (shown only in select mode for non-swiped cards)
     html += '<div class="select-check">' + (isChecked ? '&#10003;' : '') + '</div>';
