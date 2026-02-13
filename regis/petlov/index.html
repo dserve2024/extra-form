@@ -195,7 +195,23 @@
       text-shadow: 0 1px 3px rgba(0,0,0,0.8); text-align: center; line-height: 1.3;
     }
     .registered-badge .reg-amount {
-      font-size: 0.38rem; color: rgba(255,255,255,0.6); margin-top: 1px;
+      font-size: 0.5rem; color: #4ecdc4; font-weight: 700; margin-top: 2px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    /* Registered section header */
+    .reg-section-header {
+      display: flex; align-items: center; gap: 5px;
+      margin-top: 8px; margin-bottom: 4px;
+      padding: 4px 6px;
+      background: rgba(255,215,0,0.08);
+      border-radius: 6px;
+      border: 1px solid rgba(255,215,0,0.15);
+    }
+    .reg-section-icon { font-size: 0.65rem; }
+    .reg-section-label {
+      font-size: 0.55rem; color: rgba(255,215,0,0.7);
+      font-weight: 500; letter-spacing: 0.3px;
     }
 
     .no-cards-msg {
@@ -603,6 +619,13 @@
 
       <!-- Card Grid -->
       <div id="cardGrid" class="card-grid"></div>
+      <div id="registeredSection" class="hidden">
+        <div class="reg-section-header">
+          <span class="reg-section-icon">📋</span>
+          <span class="reg-section-label" id="registeredLabel">ลงทะเบียนแล้ว</span>
+        </div>
+        <div id="registeredGrid" class="card-grid"></div>
+      </div>
       <div id="unavailSection" class="hidden">
         <button class="unavail-toggle" id="unavailToggleBtn" onclick="toggleUnavail()">&#9654; Not with team (<span id="unavailCount">0</span>)</button>
         <div id="unavailGrid" class="card-grid hidden"></div>
@@ -866,14 +889,32 @@ function renderCards() {
   var availCards = allCards.filter(function(c) { return c.available === true; });
   var unavailCards = allCards.filter(function(c) { return c.available !== true; });
 
+  // Split available into fresh vs registered
+  var freshCards = availCards.filter(function(c) { return !registeredCardMap[c.card_id]; });
+  var regCards = availCards.filter(function(c) { return !!registeredCardMap[c.card_id]; });
+
   var grid = document.getElementById('cardGrid');
-  if (availCards.length === 0 && unavailCards.length === 0) {
+  if (freshCards.length === 0 && regCards.length === 0 && unavailCards.length === 0) {
     grid.innerHTML = '<div class="no-cards-msg">No eligible cards (KFV/KCC/THE1/LOTUS)</div>';
+    document.getElementById('registeredSection').classList.add('hidden');
     document.getElementById('unavailSection').classList.add('hidden');
     return;
   }
 
-  grid.innerHTML = availCards.map(function(card) { return renderCardHtml(card, false); }).join('');
+  grid.innerHTML = freshCards.length > 0
+    ? freshCards.map(function(card) { return renderCardHtml(card, false); }).join('')
+    : '<div class="no-cards-msg" style="font-size:0.65rem;padding:12px;">\u0e25\u0e07\u0e17\u0e30\u0e40\u0e1a\u0e35\u0e22\u0e19\u0e04\u0e23\u0e1a\u0e41\u0e25\u0e49\u0e27</div>';
+
+  // Registered cards section
+  var regSection = document.getElementById('registeredSection');
+  if (regCards.length > 0) {
+    regSection.classList.remove('hidden');
+    document.getElementById('registeredLabel').textContent = '\u0e25\u0e07\u0e17\u0e30\u0e40\u0e1a\u0e35\u0e22\u0e19\u0e41\u0e25\u0e49\u0e27 (' + regCards.length + ' \u0e43\u0e1a)';
+    document.getElementById('registeredGrid').innerHTML =
+      regCards.map(function(card) { return renderCardHtml(card, false); }).join('');
+  } else {
+    regSection.classList.add('hidden');
+  }
 
   var unavailSection = document.getElementById('unavailSection');
   if (unavailCards.length > 0) {
