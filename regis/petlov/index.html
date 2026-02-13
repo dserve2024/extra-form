@@ -475,6 +475,59 @@
       font-size: 0.8rem;
     }
     .history-loading { text-align: center; padding: 30px; }
+
+    /* Multi-select button */
+    .btn-multi-select {
+      padding: 5px 10px; border-radius: 6px; border: none;
+      background: rgba(239,68,68,0.15); color: rgba(239,68,68,0.9);
+      font-size: 0.55rem; font-family: 'Prompt', sans-serif;
+      cursor: pointer; font-weight: 500; white-space: nowrap;
+    }
+    .btn-multi-select:active { background: rgba(239,68,68,0.3); }
+    .btn-multi-select.active-mode {
+      background: rgba(239,68,68,0.6); color: #fff;
+    }
+
+    /* Select checkbox on cards */
+    .history-card .select-check {
+      display: none; position: absolute; top: 6px; left: 6px;
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.2);
+      z-index: 3; align-items: center; justify-content: center;
+      font-size: 0.6rem; color: transparent;
+    }
+    .history-card.selectable .select-check { display: flex; }
+    .history-card.selectable .gear-btn { display: none; }
+    .history-card.selectable { cursor: pointer; }
+    .history-card.sel-checked {
+      border-color: rgba(239,68,68,0.6);
+      box-shadow: 0 0 8px rgba(239,68,68,0.25);
+    }
+    .history-card.sel-checked .select-check {
+      background: rgba(239,68,68,0.8); border-color: rgba(239,68,68,0.9);
+      color: #fff;
+    }
+
+    /* Batch action bar */
+    .batch-action-bar {
+      position: sticky; bottom: 0;
+      background: rgba(30,20,50,0.95); backdrop-filter: blur(10px);
+      border-radius: 10px 10px 0 0; padding: 10px 14px;
+      display: flex; align-items: center; gap: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: 8px;
+    }
+    .batch-action-bar .batch-count {
+      flex: 1; font-size: 0.65rem; color: rgba(255,255,255,0.6);
+    }
+    .batch-action-bar button {
+      padding: 7px 14px; border-radius: 6px; border: none;
+      font-size: 0.6rem; font-family: 'Prompt', sans-serif;
+      cursor: pointer; font-weight: 500;
+    }
+    .btn-batch-cancel { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+    .btn-batch-delete { background: rgba(239,68,68,0.8); color: #fff; }
+    .btn-batch-delete:disabled { opacity: 0.4; }
   </style>
 </head>
 <body>
@@ -510,8 +563,8 @@
 
     <!-- Tab Navigation -->
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('register')" id="tabRegister">ลงทะเบียน</button>
-      <button class="tab-btn" onclick="switchTab('history')" id="tabHistory">ประวัติ</button>
+      <button class="tab-btn active" onclick="switchTab('register')" id="tabRegister">📝 ลงทะเบียน</button>
+      <button class="tab-btn" onclick="switchTab('history')" id="tabHistory">📋 ประวัติ</button>
     </div>
 
     <!-- Register Tab -->
@@ -553,10 +606,18 @@
       </div>
       <div id="historyContent" class="hidden">
         <div class="history-total-bar">
-          <div class="total-label">ยอดรวมรอบนี้</div>
-          <div class="total-amount" id="historyTotalAmount">0</div>
+          <div>
+            <div class="total-label">ยอดรวมรอบนี้</div>
+            <div class="total-amount" id="historyTotalAmount">0</div>
+          </div>
+          <button class="btn-multi-select" id="btnMultiSelect" onclick="toggleSelectMode()">🗑 เลือกลบ</button>
         </div>
         <div id="historyGrid" class="history-grid"></div>
+        <div id="batchActionBar" class="batch-action-bar hidden">
+          <span class="batch-count" id="batchCount">เลือก 0 ใบ</span>
+          <button class="btn-batch-cancel" onclick="cancelSelectMode()">ยกเลิก</button>
+          <button class="btn-batch-delete" id="btnBatchDelete" onclick="batchDeleteCards()" disabled>ลบที่เลือก</button>
+        </div>
       </div>
     </div>
 
@@ -614,6 +675,8 @@ var cardTypesMap = {};
 var selectedCards = {};
 var currentTab = 'register';
 var historyData = null;
+var selectMode = false;
+var selectedForDelete = {};
 
 // HELPERS
 function truncate(str, max) {
@@ -1064,15 +1127,36 @@ function renderHistory() {
   var total = historyData.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
   document.getElementById('historyTotalAmount').textContent = formatNumber(total) + ' \u0e3f';
 
+  // Update multi-select button state
+  var msBtn = document.getElementById('btnMultiSelect');
+  if (msBtn) msBtn.classList.toggle('active-mode', selectMode);
+
+  // Show/hide batch action bar
+  document.getElementById('batchActionBar').classList.toggle('hidden', !selectMode);
+
   var grid = document.getElementById('historyGrid');
   var html = '';
 
   for (var i = 0; i < historyData.length; i++) {
     var item = historyData[i];
     var isSwiped = item.swiped === true || item.swiped === 'TRUE';
+    var isSelectable = selectMode && !isSwiped;
+    var isChecked = !!selectedForDelete[i];
 
-    html += '<div class="history-card" id="hcard_' + i + '">';
+    var classes = 'history-card';
+    if (isSelectable) classes += ' selectable';
+    if (isChecked) classes += ' sel-checked';
 
+    html += '<div class="' + classes + '" id="hcard_' + i + '"';
+    if (isSelectable) {
+      html += ' onclick="toggleSelectCard(' + i + ')"';
+    }
+    html += '>';
+
+    // Checkbox (shown only in select mode for non-swiped cards)
+    html += '<div class="select-check">' + (isChecked ? '&#10003;' : '') + '</div>';
+
+    // Gear button (hidden in select mode via CSS)
     if (!isSwiped) {
       html += '<button class="gear-btn" onclick="event.stopPropagation();toggleEditMode(' + i + ')">&#9881;</button>';
     }
@@ -1086,7 +1170,7 @@ function renderHistory() {
       html += '<div class="hc-swiped">\u0e23\u0e39\u0e14\u0e41\u0e25\u0e49\u0e27</div>';
     }
 
-    if (!isSwiped) {
+    if (!isSwiped && !selectMode) {
       html += '<div class="edit-overlay">';
       html += '<div class="edit-stepper">';
       html += '<button class="edit-step-btn" onclick="event.stopPropagation();historyStepAmount(' + i + ',-1)">-</button>';
@@ -1105,6 +1189,7 @@ function renderHistory() {
   }
 
   grid.innerHTML = html;
+  updateBatchCount();
 }
 
 function toggleEditMode(idx) {
@@ -1196,6 +1281,85 @@ async function deleteHistoryCard(idx) {
         renderHistory();
       }
       showToast('\u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27', 'success');
+    } else {
+      showToast('Error: ' + (result.error || 'Unknown'), 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// MULTI-SELECT DELETE
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedForDelete = {};
+  renderHistory();
+}
+
+function cancelSelectMode() {
+  selectMode = false;
+  selectedForDelete = {};
+  renderHistory();
+}
+
+function toggleSelectCard(idx) {
+  if (selectedForDelete[idx]) {
+    delete selectedForDelete[idx];
+  } else {
+    selectedForDelete[idx] = true;
+  }
+  renderHistory();
+}
+
+function updateBatchCount() {
+  var count = Object.keys(selectedForDelete).length;
+  var el = document.getElementById('batchCount');
+  if (el) el.textContent = '\u0e40\u0e25\u0e37\u0e2d\u0e01 ' + count + ' \u0e43\u0e1a';
+  var btn = document.getElementById('btnBatchDelete');
+  if (btn) btn.disabled = count === 0;
+}
+
+async function batchDeleteCards() {
+  var idxList = Object.keys(selectedForDelete).map(Number);
+  if (idxList.length === 0) return;
+
+  var names = idxList.map(function(i) { return historyData[i].cardType + ' ' + historyData[i].last4; });
+  if (!confirm('\u0e25\u0e1a ' + idxList.length + ' \u0e43\u0e1a?\n' + names.join('\n'))) return;
+
+  showToast('\u0e01\u0e33\u0e25\u0e31\u0e07\u0e25\u0e1a ' + idxList.length + ' \u0e43\u0e1a...', 'warning');
+
+  var items = idxList.map(function(i) {
+    return { cardId: historyData[i].cardId, timestamp: historyData[i].timestamp };
+  });
+
+  try {
+    var res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'batchDeletePetlovRegis',
+        custId: customerInfo.cust_id,
+        promotion: CONFIG.PROMOTION,
+        items: items
+      })
+    });
+    var result = await res.json();
+
+    if (result.success) {
+      // Remove deleted items from historyData (sort desc to splice safely)
+      idxList.sort(function(a, b) { return b - a; });
+      idxList.forEach(function(i) { historyData.splice(i, 1); });
+
+      selectMode = false;
+      selectedForDelete = {};
+
+      if (historyData.length === 0) {
+        document.getElementById('historyContent').classList.add('hidden');
+        document.getElementById('historyEmpty').classList.remove('hidden');
+      } else {
+        renderHistory();
+      }
+      showToast('\u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27 ' + result.deleted + ' \u0e43\u0e1a', 'success');
     } else {
       showToast('Error: ' + (result.error || 'Unknown'), 'error');
     }
