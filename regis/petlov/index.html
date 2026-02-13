@@ -443,33 +443,41 @@
     .history-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
     .history-card {
-      background: rgba(255,255,255,0.08); border-radius: 10px; padding: 10px;
+      background: rgba(255,255,255,0.08); border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.1); position: relative;
-      transition: all 0.2s; overflow: hidden; min-height: 90px;
+      transition: all 0.2s; overflow: hidden;
     }
-    .history-card .hc-bg-img {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      object-fit: cover; opacity: 0.15; border-radius: 10px;
-      pointer-events: none;
+    .history-card .hc-img-wrap {
+      width: 100%; aspect-ratio: 1.586; overflow: hidden;
+      background: rgba(255,255,255,0.04); position: relative;
     }
+    .history-card .hc-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .history-card .hc-img-wrap .hc-no-img {
+      width: 100%; height: 100%; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 0.55rem; color: rgba(255,255,255,0.2);
+    }
+    .history-card .hc-info { padding: 6px 8px 8px; position: relative; }
     .history-card .hc-type {
-      font-size: 0.6rem; color: rgba(255,255,255,0.7);
+      font-size: 0.55rem; color: rgba(255,255,255,0.7);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      padding-right: 24px;
+      padding-right: 22px;
     }
-    .history-card .hc-last4 { font-size: 0.55rem; color: rgba(255,255,255,0.4); }
+    .history-card .hc-last4 { font-size: 0.5rem; color: rgba(255,255,255,0.4); }
     .history-card .hc-name {
-      font-size: 0.5rem; color: rgba(255,255,255,0.35);
+      font-size: 0.45rem; color: rgba(255,255,255,0.35);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     .history-card .hc-amount {
-      font-size: 1.25rem; font-weight: 700; color: #4ecdc4;
-      text-align: center; margin-top: 2px;
+      font-size: 1.1rem; font-weight: 700; color: #4ecdc4;
+      text-align: center; margin-top: 1px;
     }
     .history-card .hc-swiped {
       display: inline-block; font-size: 0.45rem; color: #00d084;
-      background: rgba(0,208,132,0.12); padding: 1px 6px; border-radius: 4px; margin-top: 3px;
+      background: rgba(0,208,132,0.12); padding: 1px 6px; border-radius: 4px; margin-top: 2px;
     }
 
     .history-card .gear-btn {
@@ -1317,11 +1325,15 @@ function renderHistory() {
     }
     html += '>';
 
-    // Card background image
+    // Card image at top
     var typeInfo = cardTypesMap[item.cardType];
+    html += '<div class="hc-img-wrap">';
     if (typeInfo && typeInfo.image_url) {
-      html += '<img src="' + typeInfo.image_url + '" class="hc-bg-img" onerror="this.style.display=\'none\'">';
+      html += '<img src="' + typeInfo.image_url + '" onerror="this.parentNode.innerHTML=\'<div class=hc-no-img>' + truncate(item.cardType, 10) + '</div>\'">';
+    } else {
+      html += '<div class="hc-no-img">' + truncate(item.cardType, 10) + '</div>';
     }
+    html += '</div>';
 
     // Checkbox (shown only in select mode for non-swiped cards)
     html += '<div class="select-check">' + (isChecked ? '&#10003;' : '') + '</div>';
@@ -1331,6 +1343,7 @@ function renderHistory() {
       html += '<button class="gear-btn" onclick="event.stopPropagation();toggleEditMode(' + i + ')">&#9881;</button>';
     }
 
+    html += '<div class="hc-info">';
     html += '<div class="hc-type">' + truncate(item.cardType, 18) + '</div>';
     html += '<div class="hc-last4">****' + (item.last4 || '') + '</div>';
     html += '<div class="hc-name">' + truncate(item.fullName, 18) + '</div>';
@@ -1339,6 +1352,7 @@ function renderHistory() {
     if (isSwiped) {
       html += '<div class="hc-swiped">\u0e23\u0e39\u0e14\u0e41\u0e25\u0e49\u0e27</div>';
     }
+    html += '</div>';
 
     if (!isSwiped && !selectMode) {
       html += '<div class="edit-overlay">';
