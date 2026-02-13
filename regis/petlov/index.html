@@ -373,6 +373,108 @@
     .toast.error { background: #ef4444; color: #fff; }
     .toast.success { background: #10b981; color: #fff; }
     @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    /* Tab Navigation */
+    .tab-bar {
+      display: flex; gap: 0; margin-bottom: 6px;
+      border-radius: 10px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+    }
+    .tab-btn {
+      flex: 1; padding: 9px 0; text-align: center;
+      font-family: 'Prompt', sans-serif; font-size: 0.72rem; font-weight: 500;
+      color: rgba(255,255,255,0.45); background: transparent;
+      border: none; cursor: pointer; transition: all 0.2s; position: relative;
+    }
+    .tab-btn.active {
+      color: #fff; background: rgba(255,255,255,0.12); font-weight: 600;
+    }
+    .tab-btn.active::after {
+      content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+      height: 2px; background: #4ecdc4; border-radius: 1px;
+    }
+
+    /* History Tab */
+    .history-total-bar {
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+      border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .history-total-bar .total-label { font-size: 0.65rem; color: rgba(255,255,255,0.55); }
+    .history-total-bar .total-amount { font-size: 1.2rem; font-weight: 700; color: #FFD700; }
+
+    .history-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+    .history-card {
+      background: rgba(255,255,255,0.08); border-radius: 10px; padding: 10px;
+      border: 1px solid rgba(255,255,255,0.1); position: relative;
+      transition: all 0.2s; overflow: hidden; min-height: 90px;
+    }
+    .history-card .hc-type {
+      font-size: 0.6rem; color: rgba(255,255,255,0.7);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      padding-right: 24px;
+    }
+    .history-card .hc-last4 { font-size: 0.55rem; color: rgba(255,255,255,0.4); }
+    .history-card .hc-name {
+      font-size: 0.5rem; color: rgba(255,255,255,0.35);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .history-card .hc-amount { font-size: 1.05rem; font-weight: 700; color: #4ecdc4; }
+    .history-card .hc-swiped {
+      display: inline-block; font-size: 0.45rem; color: #00d084;
+      background: rgba(0,208,132,0.12); padding: 1px 6px; border-radius: 4px; margin-top: 3px;
+    }
+
+    .history-card .gear-btn {
+      position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
+      border-radius: 50%; background: rgba(255,255,255,0.1); border: none;
+      color: rgba(255,255,255,0.5); font-size: 0.65rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .history-card .gear-btn:active { background: rgba(255,255,255,0.25); }
+
+    /* Edit overlay */
+    .history-card .edit-overlay {
+      display: none; position: absolute; inset: 0;
+      background: rgba(30,30,60,0.95); border-radius: 10px;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 10px; z-index: 2;
+    }
+    .history-card.editing .edit-overlay { display: flex; }
+
+    .edit-overlay .edit-stepper {
+      display: flex; align-items: center; gap: 0;
+      border-radius: 6px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.2); height: 30px; width: 100%;
+    }
+    .edit-overlay .edit-step-btn {
+      width: 30px; height: 30px; background: rgba(255,255,255,0.12); border: none;
+      color: #fff; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .edit-overlay .edit-step-btn:active { background: rgba(255,255,255,0.25); }
+    .edit-overlay .edit-amt-val {
+      flex: 1; text-align: center; color: #4ecdc4; font-size: 0.65rem; font-weight: 600;
+      background: transparent; border: none; outline: none; font-family: 'Prompt', sans-serif;
+    }
+    .edit-overlay .edit-actions { display: flex; gap: 5px; width: 100%; }
+    .edit-overlay .edit-actions button {
+      flex: 1; padding: 6px 0; border-radius: 6px; border: none;
+      font-size: 0.55rem; font-family: 'Prompt', sans-serif; cursor: pointer; font-weight: 500;
+    }
+    .edit-overlay .btn-save { background: #4ecdc4; color: #fff; }
+    .edit-overlay .btn-delete { background: rgba(239,68,68,0.7); color: #fff; }
+    .edit-overlay .btn-cancel { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+
+    .history-empty {
+      text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.4);
+      font-size: 0.8rem;
+    }
+    .history-loading { text-align: center; padding: 30px; }
   </style>
 </head>
 <body>
@@ -406,28 +508,56 @@
       </div>
     </div>
 
-    <!-- Card Selection Header -->
-    <div class="section-header">
-      <div class="section-label">KFV / KCC / THE1 / LOTUS</div>
-      <div class="header-spacer"></div>
-      <button class="header-btn btn-select-all" onclick="selectAllCards()">&#10003; All</button>
-      <button class="header-btn btn-add-card" onclick="showAddCardModal()">+ Card</button>
+    <!-- Tab Navigation -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('register')" id="tabRegister">ลงทะเบียน</button>
+      <button class="tab-btn" onclick="switchTab('history')" id="tabHistory">ประวัติ</button>
     </div>
 
-    <!-- Card Grid -->
-    <div id="cardGrid" class="card-grid"></div>
-    <div id="unavailSection" class="hidden">
-      <button class="unavail-toggle" id="unavailToggleBtn" onclick="toggleUnavail()">&#9654; Not with team (<span id="unavailCount">0</span>)</button>
-      <div id="unavailGrid" class="card-grid hidden"></div>
+    <!-- Register Tab -->
+    <div id="registerTab">
+      <!-- Card Selection Header -->
+      <div class="section-header">
+        <div class="section-label">KFV / KCC / THE1 / LOTUS</div>
+        <div class="header-spacer"></div>
+        <button class="header-btn btn-select-all" onclick="selectAllCards()">&#10003; All</button>
+        <button class="header-btn btn-add-card" onclick="showAddCardModal()">+ Card</button>
+      </div>
+
+      <!-- Card Grid -->
+      <div id="cardGrid" class="card-grid"></div>
+      <div id="unavailSection" class="hidden">
+        <button class="unavail-toggle" id="unavailToggleBtn" onclick="toggleUnavail()">&#9654; Not with team (<span id="unavailCount">0</span>)</button>
+        <div id="unavailGrid" class="card-grid hidden"></div>
+      </div>
+
+      <!-- Selected Cards Summary (2 cols with +/- stepper) -->
+      <div id="selectedSection" class="selected-section hidden">
+        <div class="section-title" id="selectedTitle">Selected cards</div>
+        <div id="selectedList" class="selected-grid"></div>
+        <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+          Submit
+        </button>
+      </div>
     </div>
 
-    <!-- Selected Cards Summary (2 cols with +/- stepper) -->
-    <div id="selectedSection" class="selected-section hidden">
-      <div class="section-title" id="selectedTitle">Selected cards</div>
-      <div id="selectedList" class="selected-grid"></div>
-      <button class="submit-btn" id="submitBtn" onclick="submitForm()">
-        Submit
-      </button>
+    <!-- History Tab -->
+    <div id="historyTab" class="hidden">
+      <div id="historyLoading" class="history-loading hidden">
+        <div class="spinner" style="margin:0 auto 10px;"></div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Loading...</div>
+      </div>
+      <div id="historyEmpty" class="history-empty hidden">
+        <div style="font-size:1.8rem;margin-bottom:6px;">📋</div>
+        <div>ยังไม่มีประวัติการลงทะเบียน</div>
+      </div>
+      <div id="historyContent" class="hidden">
+        <div class="history-total-bar">
+          <div class="total-label">ยอดรวมรอบนี้</div>
+          <div class="total-amount" id="historyTotalAmount">0</div>
+        </div>
+        <div id="historyGrid" class="history-grid"></div>
+      </div>
     </div>
 
   </div>
@@ -482,6 +612,8 @@ var customerInfo = null;
 var allCards = [];
 var cardTypesMap = {};
 var selectedCards = {};
+var currentTab = 'register';
+var historyData = null;
 
 // HELPERS
 function truncate(str, max) {
@@ -865,6 +997,7 @@ async function submitForm() {
       document.getElementById('successDetail').textContent = detail;
       document.getElementById('mainContent').classList.add('hidden');
       document.getElementById('successScreen').classList.remove('hidden');
+      historyData = null; // reset so history reloads on next tab switch
       setTimeout(function() { closeLiff(); }, 3000);
     } else {
       showToast('Error: ' + (result.error || 'Unknown'), 'error');
@@ -874,6 +1007,200 @@ async function submitForm() {
     document.getElementById('processingOverlay').classList.add('hidden');
     showToast('Error: ' + e.message, 'error');
     document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+// TAB SWITCHING
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+  document.getElementById('registerTab').classList.toggle('hidden', tab !== 'register');
+  document.getElementById('historyTab').classList.toggle('hidden', tab !== 'history');
+  if (tab === 'history') loadHistory();
+}
+
+// HISTORY
+async function loadHistory() {
+  var content = document.getElementById('historyContent');
+  var loading = document.getElementById('historyLoading');
+  var empty = document.getElementById('historyEmpty');
+
+  content.classList.add('hidden');
+  empty.classList.add('hidden');
+  loading.classList.remove('hidden');
+
+  try {
+    var res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'getPetlovHistory',
+        custId: customerInfo.cust_id,
+        promotion: CONFIG.PROMOTION
+      })
+    });
+    var result = await res.json();
+    loading.classList.add('hidden');
+
+    if (result.success && result.data && result.data.length > 0) {
+      historyData = result.data;
+      renderHistory();
+      content.classList.remove('hidden');
+    } else {
+      historyData = [];
+      empty.classList.remove('hidden');
+    }
+  } catch (e) {
+    loading.classList.add('hidden');
+    showToast('Error: ' + e.message, 'error');
+    empty.classList.remove('hidden');
+  }
+}
+
+function renderHistory() {
+  if (!historyData || historyData.length === 0) return;
+
+  var total = historyData.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
+  document.getElementById('historyTotalAmount').textContent = formatNumber(total) + ' \u0e3f';
+
+  var grid = document.getElementById('historyGrid');
+  var html = '';
+
+  for (var i = 0; i < historyData.length; i++) {
+    var item = historyData[i];
+    var isSwiped = item.swiped === true || item.swiped === 'TRUE';
+
+    html += '<div class="history-card" id="hcard_' + i + '">';
+
+    if (!isSwiped) {
+      html += '<button class="gear-btn" onclick="event.stopPropagation();toggleEditMode(' + i + ')">&#9881;</button>';
+    }
+
+    html += '<div class="hc-type">' + truncate(item.cardType, 18) + '</div>';
+    html += '<div class="hc-last4">****' + (item.last4 || '') + '</div>';
+    html += '<div class="hc-name">' + truncate(item.fullName, 18) + '</div>';
+    html += '<div class="hc-amount">' + formatNumber(item.amount) + ' \u0e3f</div>';
+
+    if (isSwiped) {
+      html += '<div class="hc-swiped">\u0e23\u0e39\u0e14\u0e41\u0e25\u0e49\u0e27</div>';
+    }
+
+    if (!isSwiped) {
+      html += '<div class="edit-overlay">';
+      html += '<div class="edit-stepper">';
+      html += '<button class="edit-step-btn" onclick="event.stopPropagation();historyStepAmount(' + i + ',-1)">-</button>';
+      html += '<input type="text" class="edit-amt-val" id="hedit_' + i + '" value="' + formatNumber(item.amount) + '" inputmode="numeric" onfocus="this.select()">';
+      html += '<button class="edit-step-btn" onclick="event.stopPropagation();historyStepAmount(' + i + ',1)">+</button>';
+      html += '</div>';
+      html += '<div class="edit-actions">';
+      html += '<button class="btn-cancel" onclick="event.stopPropagation();toggleEditMode(' + i + ')">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button>';
+      html += '<button class="btn-save" onclick="event.stopPropagation();saveHistoryAmount(' + i + ')">\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button>';
+      html += '<button class="btn-delete" onclick="event.stopPropagation();deleteHistoryCard(' + i + ')">\u0e25\u0e1a</button>';
+      html += '</div>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+  }
+
+  grid.innerHTML = html;
+}
+
+function toggleEditMode(idx) {
+  var card = document.getElementById('hcard_' + idx);
+  if (!card) return;
+  card.classList.toggle('editing');
+  if (card.classList.contains('editing') && historyData[idx]) {
+    var input = document.getElementById('hedit_' + idx);
+    if (input) input.value = formatNumber(historyData[idx].amount);
+  }
+}
+
+function historyStepAmount(idx, direction) {
+  var input = document.getElementById('hedit_' + idx);
+  if (!input) return;
+  var current = parseAmount(input.value) || CONFIG.DEFAULT_AMOUNT;
+  var next = current + (direction * CONFIG.STEP_AMOUNT);
+  if (next < CONFIG.STEP_AMOUNT) next = CONFIG.STEP_AMOUNT;
+  if (next > CONFIG.MAX_AMOUNT) next = CONFIG.MAX_AMOUNT;
+  input.value = formatNumber(next);
+}
+
+async function saveHistoryAmount(idx) {
+  var item = historyData[idx];
+  if (!item) return;
+
+  var input = document.getElementById('hedit_' + idx);
+  var newAmount = parseAmount(input.value);
+  if (newAmount <= 0) newAmount = CONFIG.DEFAULT_AMOUNT;
+  if (newAmount === item.amount) { toggleEditMode(idx); return; }
+
+  showToast('\u0e01\u0e33\u0e25\u0e31\u0e07\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01...', 'warning');
+
+  try {
+    var res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'updatePetlovAmount',
+        custId: customerInfo.cust_id,
+        promotion: CONFIG.PROMOTION,
+        cardId: item.cardId,
+        timestamp: item.timestamp,
+        newAmount: newAmount
+      })
+    });
+    var result = await res.json();
+
+    if (result.success) {
+      historyData[idx].amount = newAmount;
+      renderHistory();
+      showToast('\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27', 'success');
+    } else {
+      showToast('Error: ' + (result.error || 'Unknown'), 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function deleteHistoryCard(idx) {
+  var item = historyData[idx];
+  if (!item) return;
+
+  if (!confirm('\u0e25\u0e1a ' + item.cardType + ' ' + item.last4 + ' ?')) return;
+
+  showToast('\u0e01\u0e33\u0e25\u0e31\u0e07\u0e25\u0e1a...', 'warning');
+
+  try {
+    var res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'deletePetlovRegis',
+        custId: customerInfo.cust_id,
+        promotion: CONFIG.PROMOTION,
+        cardId: item.cardId,
+        timestamp: item.timestamp
+      })
+    });
+    var result = await res.json();
+
+    if (result.success) {
+      historyData.splice(idx, 1);
+      if (historyData.length === 0) {
+        document.getElementById('historyContent').classList.add('hidden');
+        document.getElementById('historyEmpty').classList.remove('hidden');
+      } else {
+        renderHistory();
+      }
+      showToast('\u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27', 'success');
+    } else {
+      showToast('Error: ' + (result.error || 'Unknown'), 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
   }
 }
 
