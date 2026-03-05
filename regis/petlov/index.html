@@ -838,12 +838,13 @@ function mapSupabaseToHistory(r) {
 }
 
 // Fire-and-forget sync to Apps Script (Sheets + LINE notification)
-function fireAndForgetSync(syncBody) {
-  fetch(CONFIG.APPS_SCRIPT_URL, {
+async function callGAS(body) {
+  var resp = await fetch(CONFIG.APPS_SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(syncBody)
-  }).catch(function(e) { console.error('Sync error:', e); });
+    body: JSON.stringify(body)
+  });
+  return await resp.json();
 }
 
 // INIT
@@ -869,7 +870,7 @@ async function init() {
     var [cardsResult, typesResult, historyPreload] = await Promise.all([
       sb.from('cards').select('*').eq('cust_id', customerInfo.cust_id),
       sb.from('card_types').select('*'),
-      sb.from('petlov_registrations').select('*')
+      sb.from('registrations').select('*')
         .eq('cust_id', customerInfo.cust_id)
         .eq('promotion', CONFIG.PROMOTION)
     ]);
@@ -1215,12 +1216,19 @@ async function submitForm() {
         amount: c.amount
       };
     });
-    var insertResult = await sb.from('petlov_registrations').insert(rows);
+    var gasResult = await callGAS({
+      action: 'syncRegistration',
+      type: 'submit',
+      lineUserId: lineProfile.userId,
+      displayName: lineProfile.displayName,
+      custId: customerInfo.cust_id,
+      cards: cards
+    });
 
     document.getElementById('processingOverlay').classList.add('hidden');
 
-    if (insertResult.error) {
-      showToast('Error: ' + insertResult.error.message, 'error');
+    if (!gasResult || !gasResult.success) {
+      showToast('Error: ' + ((gasResult && gasResult.error) || 'Unknown error'), 'error');
       document.getElementById('submitBtn').disabled = false;
       return;
     }
@@ -1252,16 +1260,6 @@ async function submitForm() {
     selectedCards = {};
     historyData = null; // reset so history reloads on next tab switch
 
-    // 3. Fire-and-forget: sync ไป Sheets + ส่ง LINE + Telegram notification
-    fireAndForgetSync({
-      action: 'syncPetlovToSheets',
-      type: 'submit',
-      lineUserId: lineProfile.userId,
-      displayName: lineProfile.displayName,
-      custId: customerInfo.cust_id,
-      cards: cards
-    });
-
     setTimeout(function() { closeLiff(); }, 3000);
   } catch (e) {
     document.getElementById('processingOverlay').classList.add('hidden');
@@ -1292,7 +1290,7 @@ async function loadHistory() {
   loading.classList.remove('hidden');
 
   try {
-    var result = await sb.from('petlov_registrations').select('*')
+    var result = await sb.from('registrations').select('*')
       .eq('cust_id', customerInfo.cust_id)
       .eq('promotion', CONFIG.PROMOTION)
       .order('created_at', { ascending: false });
@@ -1459,27 +1457,11 @@ async function saveHistoryAmount(idx) {
   showToast('\u0e01\u0e33\u0e25\u0e31\u0e07\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01...', 'warning');
 
   try {
-    // 1. UPDATE Supabase (เร็ว)
     var oldAmount = item.amount;
-    var updateResult = await sb.from('petlov_registrations')
-      .update({ amount: newAmount })
-      .eq('id', item.id);
-
-    if (updateResult.error) {
-      showToast('Error: ' + updateResult.error.message, 'error');
-      return;
-    }
-
-    // 2. อัพเดท UI ทันที
-    historyData[idx].amount = newAmount;
-    buildRegisteredMap();
-    renderHistory();
-    showToast('\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27', 'success');
-
-    // 3. Fire-and-forget sync ไป Sheets + LINE notification
-    fireAndForgetSync({
-      action: 'syncPetlovToSheets',
+    var gasResult = await callGAS({
+      action: 'syncRegistration',
       type: 'updateAmount',
+      supabaseId: item.id,
       lineUserId: lineProfile.userId,
       custId: customerInfo.cust_id,
       promotion: CONFIG.PROMOTION,
@@ -1490,6 +1472,16 @@ async function saveHistoryAmount(idx) {
       timestamp: item.timestamp,
       newAmount: newAmount
     });
+
+    if (!gasResult || !gasResult.success) {
+      showToast('Error: ' + ((gasResult && gasResult.error) || 'Unknown error'), 'error');
+      return;
+    }
+
+    historyData[idx].amount = newAmount;
+    buildRegisteredMap();
+    renderHistory();
+    showToast('\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27', 'success');
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
   }
@@ -1507,31 +1499,10 @@ async function deleteHistoryCard(idx, skipConfirm) {
   showToast('\u0e01\u0e33\u0e25\u0e31\u0e07\u0e25\u0e1a...', 'warning');
 
   try {
-    // 1. DELETE จาก Supabase (เร็ว)
-    var delResult = await sb.from('petlov_registrations')
-      .delete()
-      .eq('id', item.id);
-
-    if (delResult.error) {
-      showToast('Error: ' + delResult.error.message, 'error');
-      return;
-    }
-
-    // 2. อัพเดท UI ทันที
-    historyData.splice(idx, 1);
-    buildRegisteredMap();
-    if (historyData.length === 0) {
-      document.getElementById('historyContent').classList.add('hidden');
-      document.getElementById('historyEmpty').classList.remove('hidden');
-    } else {
-      renderHistory();
-    }
-    showToast('\u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27', 'success');
-
-    // 3. Fire-and-forget sync ไป Sheets + LINE notification
-    fireAndForgetSync({
-      action: 'syncPetlovToSheets',
+    var gasResult = await callGAS({
+      action: 'syncRegistration',
       type: 'delete',
+      supabaseId: item.id,
       lineUserId: lineProfile.userId,
       custId: customerInfo.cust_id,
       promotion: CONFIG.PROMOTION,
@@ -1541,6 +1512,21 @@ async function deleteHistoryCard(idx, skipConfirm) {
       amount: item.amount,
       timestamp: item.timestamp
     });
+
+    if (!gasResult || !gasResult.success) {
+      showToast('Error: ' + ((gasResult && gasResult.error) || 'Unknown error'), 'error');
+      return;
+    }
+
+    historyData.splice(idx, 1);
+    buildRegisteredMap();
+    if (historyData.length === 0) {
+      document.getElementById('historyContent').classList.add('hidden');
+      document.getElementById('historyEmpty').classList.remove('hidden');
+    } else {
+      renderHistory();
+    }
+    showToast('\u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27', 'success');
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
   }
@@ -1596,17 +1582,20 @@ async function batchDeleteCards() {
 
   try {
     // 1. DELETE จาก Supabase ทีเดียว
-    var ids = items.map(function(it) { return it.id; });
-    var delResult = await sb.from('petlov_registrations')
-      .delete()
-      .in('id', ids);
+    var gasResult = await callGAS({
+      action: 'syncRegistration',
+      type: 'batchDelete',
+      lineUserId: lineProfile.userId,
+      custId: customerInfo.cust_id,
+      promotion: CONFIG.PROMOTION,
+      items: items
+    });
 
-    if (delResult.error) {
-      showToast('Error: ' + delResult.error.message, 'error');
+    if (!gasResult || !gasResult.success) {
+      showToast('Error: ' + ((gasResult && gasResult.error) || 'Unknown error'), 'error');
       return;
     }
 
-    // 2. อัพเดท UI ทันที
     idxList.sort(function(a, b) { return b - a; });
     idxList.forEach(function(i) { historyData.splice(i, 1); });
 
@@ -1620,17 +1609,7 @@ async function batchDeleteCards() {
     } else {
       renderHistory();
     }
-    showToast('\u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27 ' + ids.length + ' \u0e43\u0e1a', 'success');
-
-    // 3. Fire-and-forget sync ไป Sheets + LINE notification
-    fireAndForgetSync({
-      action: 'syncPetlovToSheets',
-      type: 'batchDelete',
-      lineUserId: lineProfile.userId,
-      custId: customerInfo.cust_id,
-      promotion: CONFIG.PROMOTION,
-      items: items
-    });
+    showToast('\u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27 ' + items.length + ' \u0e43\u0e1a', 'success');
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
   }
